@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Overview of events and attendee registrations.</p>
+  </div>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="{{ url_for('events.create_event') }}">New event</a>
+    <a class="btn btn-accent" href="{{ url_for('registrations.create_registration') }}">Register user</a>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><strong>{{ stats.events }}</strong><span>Events</span></div>
+  <div class="stat"><strong>{{ stats.registrations }}</strong><span>Registrations</span></div>
+  <div class="stat"><strong>{{ stats.existing_members }}</strong><span>Existing members</span></div>
+  <div class="stat"><strong>{{ stats.new_members }}</strong><span>New members</span></div>
+</div>
+
+<div class="split">
+  <section class="panel">
+    <h2>Upcoming events</h2>
+    {% if upcoming_events %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Date</th>
+              <th>Venue</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in upcoming_events %}
+              <tr>
+                <td>{{ event.name }}</td>
+                <td>{{ event.event_date.strftime("%b %d, %Y") }}</td>
+                <td>{{ event.venue }}</td>
+                <td><a href="{{ url_for('events.detail', event_id=event.id) }}">View</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty">No events yet. Create your first event to start taking registrations.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Recent registrations</h2>
+    {% if recent_registrations %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Event</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for reg in recent_registrations %}
+              <tr>
+                <td><a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">{{ reg.full_name }}</a></td>
+                <td>{{ reg.event.name }}</td>
+                <td>
+                  <span class="badge {% if reg.member_type == 'new' %}badge-new{% else %}badge-existing{% endif %}">
+                    {{ reg.member_type_label }}
+                  </span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty">No registrations yet.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

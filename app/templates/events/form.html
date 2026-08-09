@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Create event — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Create event</h1>
+    <p>Capture the event name, date, and venue. Registrations will be tied to this event.</p>
+  </div>
+</div>
+
+<section class="panel" style="max-width: 720px;">
+  <form method="post" class="form-grid">
+    <label>
+      Event name
+      <input type="text" name="name" required maxlength="200" placeholder="e.g. Annual Gathering">
+    </label>
+    <div class="form-grid two">
+      <label>
+        Date
+        <input type="date" name="event_date" required>
+      </label>
+      <label>
+        Venue
+        <input type="text" name="venue" required maxlength="255" placeholder="e.g. Community Hall">
+      </label>
+    </div>
+    <label>
+      Description <span class="muted">(optional)</span>
+      <textarea name="description" placeholder="Short notes about the event"></textarea>
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Save event</button>
+      <a class="btn btn-ghost" href="{{ url_for('events.list_events') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

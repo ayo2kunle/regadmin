@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Registrations — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Registrations</h1>
+    <p>View all event registrations. Filter by event or member type.</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('registrations.create_registration') }}">Register user</a>
+</div>
+
+<section class="panel">
+  <form method="get" class="filter-bar">
+    <label>
+      Event
+      <select name="event_id">
+        <option value="">All events</option>
+        {% for event in events %}
+          <option value="{{ event.id }}" {% if selected_event_id == event.id %}selected{% endif %}>
+            {{ event.name }} — {{ event.event_date.strftime("%b %d, %Y") }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Member type
+      <select name="member_type">
+        <option value="">All types</option>
+        <option value="existing" {% if selected_member_type == 'existing' %}selected{% endif %}>Existing members</option>
+        <option value="new" {% if selected_member_type == 'new' %}selected{% endif %}>New members</option>
+      </select>
+    </label>
+    <button class="btn btn-ghost" type="submit">Apply filters</button>
+  </form>
+
+  {% if registrations %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Guest</th>
+            <th>Event</th>
+            <th>Member type</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for reg in registrations %}
+            <tr>
+              <td>{{ reg.full_name }}</td>
+              <td>{{ reg.event.name }}</td>
+              <td>
+                <span class="badge {% if reg.member_type == 'new' %}badge-new{% else %}badge-existing{% endif %}">
+                  {{ reg.member_type_label }}
+                </span>
+              </td>
+              <td>{{ reg.email }}</td>
+              <td>{{ reg.phone or "—" }}</td>
+              <td><a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">Details</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">No registrations match these filters.</p>
+  {% endif %}
+</section>
+{% endblock %}

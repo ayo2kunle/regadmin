@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ event.name }} — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ event.name }}</h1>
+    <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.venue }}</p>
+  </div>
+  <div class="hero-actions">
+    <a class="btn btn-accent" href="{{ url_for('registrations.create_registration', event_id=event.id) }}">Register user</a>
+    <a class="btn btn-ghost" href="{{ url_for('events.list_events') }}">All events</a>
+  </div>
+</div>
+
+<div class="split">
+  <section class="panel">
+    <h2>Registrations ({{ registrations|length }})</h2>
+    {% if registrations %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Email</th>
+              <th>Member type</th>
+              <th>Registered by</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for reg in registrations %}
+              <tr>
+                <td><a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">{{ reg.full_name }}</a></td>
+                <td>{{ reg.email }}</td>
+                <td>
+                  <span class="badge {% if reg.member_type == 'new' %}badge-new{% else %}badge-existing{% endif %}">
+                    {{ reg.member_type_label }}
+                  </span>
+                </td>
+                <td>{{ reg.registered_by_user.username }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty">No one registered for this event yet.</p>
+    {% endif %}
+  </section>
+
+  <aside class="panel">
+    <h2>Event details</h2>
+    <dl class="meta-list">
+      <div>
+        <dt>Date</dt>
+        <dd>{{ event.event_date.strftime("%b %d, %Y") }}</dd>
+      </div>
+      <div>
+        <dt>Venue</dt>
+        <dd>{{ event.venue }}</dd>
+      </div>
+      <div>
+        <dt>Created by</dt>
+        <dd>{{ event.creator.username }}</dd>
+      </div>
+      <div>
+        <dt>Total guests</dt>
+        <dd>{{ registrations|length }}</dd>
+      </div>
+    </dl>
+    {% if event.description %}
+      <p style="margin-top: 1rem;">{{ event.description }}</p>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

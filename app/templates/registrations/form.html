@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Register user — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Register user</h1>
+    <p>Tie a guest to an event and mark them as an existing or new member.</p>
+  </div>
+</div>
+
+<section class="panel" style="max-width: 760px;">
+  {% if events %}
+    <form method="post" class="form-grid">
+      <label>
+        Event
+        <select name="event_id" required>
+          <option value="" disabled {% if not preselected_event_id %}selected{% endif %}>Select an event</option>
+          {% for event in events %}
+            <option value="{{ event.id }}" {% if preselected_event_id == event.id %}selected{% endif %}>
+              {{ event.name }} — {{ event.event_date.strftime("%b %d, %Y") }} @ {{ event.venue }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <div class="form-grid two">
+        <label>
+          First name
+          <input type="text" name="first_name" required maxlength="100">
+        </label>
+        <label>
+          Last name
+          <input type="text" name="last_name" required maxlength="100">
+        </label>
+      </div>
+
+      <div class="form-grid two">
+        <label>
+          Email
+          <input type="email" name="email" required maxlength="255">
+        </label>
+        <label>
+          Phone <span class="muted">(optional)</span>
+          <input type="tel" name="phone" maxlength="40">
+        </label>
+      </div>
+
+      <fieldset style="border: 0; padding: 0; margin: 0;">
+        <legend style="font-weight: 700; margin-bottom: 0.5rem; color: var(--brand-deep);">
+          Member status
+        </legend>
+        <div class="member-choice">
+          <label>
+            <input type="radio" name="member_type" value="existing" required>
+            Existing member
+          </label>
+          <label>
+            <input type="radio" name="member_type" value="new" required>
+            New member
+          </label>
+        </div>
+      </fieldset>
+
+      <label>
+        Notes <span class="muted">(optional)</span>
+        <textarea name="notes" placeholder="Any extra registration details"></textarea>
+      </label>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Save registration</button>
+        <a class="btn btn-ghost" href="{{ url_for('registrations.list_registrations') }}">Cancel</a>
+      </div>
+    </form>
+  {% else %}
+    <p class="empty">Create an event before registering users.</p>
+    <a class="btn btn-primary" href="{{ url_for('events.create_event') }}">Create event</a>
+  {% endif %}
+</section>
+{% endblock %}

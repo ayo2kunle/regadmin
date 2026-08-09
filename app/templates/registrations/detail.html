@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ registration.full_name }} — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ registration.full_name }}</h1>
+    <p>Registration for {{ registration.event.name }}</p>
+  </div>
+  <div class="hero-actions">
+    <a class="btn btn-ghost" href="{{ url_for('events.detail', event_id=registration.event_id) }}">Back to event</a>
+    <a class="btn btn-primary" href="{{ url_for('registrations.list_registrations') }}">All registrations</a>
+  </div>
+</div>
+
+<section class="panel" style="max-width: 640px;">
+  <dl class="meta-list">
+    <div>
+      <dt>Event</dt>
+      <dd>{{ registration.event.name }}</dd>
+    </div>
+    <div>
+      <dt>Event date</dt>
+      <dd>{{ registration.event.event_date.strftime("%b %d, %Y") }}</dd>
+    </div>
+    <div>
+      <dt>Venue</dt>
+      <dd>{{ registration.event.venue }}</dd>
+    </div>
+    <div>
+      <dt>Email</dt>
+      <dd>{{ registration.email }}</dd>
+    </div>
+    <div>
+      <dt>Phone</dt>
+      <dd>{{ registration.phone or "—" }}</dd>
+    </div>
+    <div>
+      <dt>Member type</dt>
+      <dd>
+        <span class="badge {% if registration.member_type == 'new' %}badge-new{% else %}badge-existing{% endif %}">
+          {{ registration.member_type_label }}
+        </span>
+      </dd>
+    </div>
+    <div>
+      <dt>Registered by</dt>
+      <dd>{{ registration.registered_by_user.username }}</dd>
+    </div>
+    <div>
+      <dt>Registered at</dt>
+      <dd>{{ registration.created_at.strftime("%b %d, %Y %H:%M") }} UTC</dd>
+    </div>
+  </dl>
+  {% if registration.notes %}
+    <p style="margin-top: 1.25rem;"><strong>Notes:</strong> {{ registration.notes }}</p>
+  {% endif %}
+</section>
+{% endblock %}

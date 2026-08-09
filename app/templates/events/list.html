@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Events — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Events</h1>
+    <p>Create and manage events with date and venue details.</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('events.create_event') }}">Create event</a>
+</div>
+
+<section class="panel">
+  {% if events %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Venue</th>
+            <th>Registrations</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in events %}
+            <tr>
+              <td>{{ event.name }}</td>
+              <td>{{ event.event_date.strftime("%b %d, %Y") }}</td>
+              <td>{{ event.venue }}</td>
+              <td>{{ event.registration_count }}</td>
+              <td>
+                <a href="{{ url_for('events.detail', event_id=event.id) }}">View</a>
+                ·
+                <a href="{{ url_for('registrations.create_registration', event_id=event.id) }}">Register</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">No events yet. Create one to begin registering users.</p>
+  {% endif %}
+</section>
+{% endblock %}

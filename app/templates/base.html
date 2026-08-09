@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}RegAdmin{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="{{ url_for('main.index') }}">Reg<span>Admin</span></a>
+      <nav class="nav-links">
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('main.dashboard') }}" class="{% if request.endpoint == 'main.dashboard' %}active{% endif %}">Dashboard</a>
+          <a href="{{ url_for('events.list_events') }}" class="{% if request.blueprint == 'events' %}active{% endif %}">Events</a>
+          <a href="{{ url_for('registrations.list_registrations') }}" class="{% if request.blueprint == 'registrations' %}active{% endif %}">Registrations</a>
+          <a href="{{ url_for('registrations.create_registration') }}">Register user</a>
+          <a href="{{ url_for('auth.logout') }}">Sign out ({{ current_user.username }})</a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}">Sign in</a>
+          <a href="{{ url_for('auth.register_staff') }}">Create staff account</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    <main class="main">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-stack">
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>
