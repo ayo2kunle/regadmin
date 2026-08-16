@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Admins — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Admins</h1>
+    <p>Manage staff accounts that can create events and registrations.</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('auth.create_admin') }}">Create admin</a>
+</div>
+
+<section class="panel">
+  {% if admins %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for admin in admins %}
+            <tr>
+              <td>
+                {{ admin.username }}
+                {% if admin.id == current_user.id %}
+                  <span class="muted">(you)</span>
+                {% endif %}
+              </td>
+              <td>{{ admin.created_at.strftime("%b %d, %Y") }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">No admin accounts found.</p>
+  {% endif %}
+</section>
+{% endblock %}

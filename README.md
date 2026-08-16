@@ -4,7 +4,7 @@ Flask app for staff to create events and register guests as existing or new memb
 
 ## Features
 
-- Staff authentication (sign in / create staff account)
+- Staff authentication (sign in only; new admins are created by existing admins)
 - Event creation with **date** and **venue**
 - Registrations tied to each event
 - Existing member vs new member selection

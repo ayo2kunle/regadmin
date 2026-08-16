@@ -28,12 +28,17 @@ def login():
     return render_template("auth/login.html")
 
 
-@auth_bp.route("/register", methods=["GET", "POST"])
-def register_staff():
-    """Create a staff account that can manage events and registrations."""
-    if current_user.is_authenticated:
-        return redirect(url_for("main.dashboard"))
+@auth_bp.route("/admins")
+@login_required
+def list_admins():
+    admins = User.query.order_by(User.created_at.asc()).all()
+    return render_template("auth/admins.html", admins=admins)
 
+
+@auth_bp.route("/admins/new", methods=["GET", "POST"])
+@login_required
+def create_admin():
+    """Logged-in admins can create additional admin accounts."""
     if request.method == "POST":
         username = (request.form.get("username") or "").strip()
         password = request.form.get("password") or ""
@@ -54,11 +59,17 @@ def register_staff():
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
-            login_user(user)
-            flash("Account created. You can manage events and registrations.", "success")
-            return redirect(url_for("main.dashboard"))
+            flash(f'Admin "{username}" created.', "success")
+            return redirect(url_for("auth.list_admins"))
 
-    return render_template("auth/register.html")
+    return render_template("auth/create_admin.html")
+
+
+@auth_bp.route("/register", methods=["GET", "POST"])
+def register_disabled():
+    """Public signup is disabled; only logged-in admins can create accounts."""
+    flash("Public account creation is disabled. Ask an admin to create your account.", "warning")
+    return redirect(url_for("auth.login"))
 
 
 @auth_bp.route("/logout")
