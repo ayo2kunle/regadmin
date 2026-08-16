@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, send_file, url_for
 from flask_login import current_user, login_required
 
 from app import db
+from app.exports import build_event_registrations_workbook, event_export_filename
 from app.models import Event, Registration
 
 events_bp = Blueprint("events", __name__, url_prefix="/events")
@@ -65,4 +66,22 @@ def detail(event_id):
     registrations = event.registrations.order_by(Registration.created_at.desc()).all()
     return render_template(
         "events/detail.html", event=event, registrations=registrations
+    )
+
+
+@events_bp.route("/<int:event_id>/export.xlsx")
+@login_required
+def export_registrations(event_id):
+    event = Event.query.get_or_404(event_id)
+    registrations = event.registrations.order_by(
+        Registration.last_name.asc(), Registration.first_name.asc()
+    ).all()
+    workbook = build_event_registrations_workbook(event, registrations)
+    return send_file(
+        workbook,
+        as_attachment=True,
+        download_name=event_export_filename(event),
+        mimetype=(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ),
     )

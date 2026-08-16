@@ -33,6 +33,10 @@
                 <a href="{{ url_for('events.detail', event_id=event.id) }}">View</a>
                 ·
                 <a href="{{ url_for('registrations.create_registration', event_id=event.id) }}">Register</a>
+                {% if event.registration_count %}
+                  ·
+                  <a href="{{ url_for('events.export_registrations', event_id=event.id) }}">Excel</a>
+                {% endif %}
               </td>
             </tr>
           {% endfor %}

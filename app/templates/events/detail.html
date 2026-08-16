@@ -8,6 +8,9 @@
   </div>
   <div class="hero-actions">
     <a class="btn btn-accent" href="{{ url_for('registrations.create_registration', event_id=event.id) }}">Register user</a>
+    {% if registrations %}
+      <a class="btn btn-primary" href="{{ url_for('events.export_registrations', event_id=event.id) }}">Download Excel</a>
+    {% endif %}
     <a class="btn btn-ghost" href="{{ url_for('events.list_events') }}">All events</a>
   </div>
 </div>
