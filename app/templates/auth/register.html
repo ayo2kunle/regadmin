@@ -7,24 +7,49 @@
   <form method="post" class="form-grid">
     <label>
       Name
-      <input type="text" name="name" required maxlength="120" autocomplete="name" autofocus>
+      <input type="text" name="name" required maxlength="120" autocomplete="name" autofocus value="{{ form.name }}">
     </label>
     <label>
       Email
-      <input type="email" name="email" required maxlength="255" autocomplete="email">
+      <input type="email" name="email" required maxlength="255" autocomplete="email" value="{{ form.email }}">
     </label>
     <label>
       Password
       <input type="password" name="password" required minlength="6" autocomplete="new-password">
     </label>
     <label>
-      Organization name
-      <input type="text" name="organization_name" required maxlength="200" autocomplete="organization">
+      Confirm password
+      <input type="password" name="confirm_password" required minlength="6" autocomplete="new-password">
     </label>
+    <label>
+      Organization name
+      <input type="text" name="organization_name" required maxlength="200" autocomplete="organization" value="{{ form.organization_name }}">
+    </label>
+    <div class="captcha-field">
+      <span class="captcha-label">Verification</span>
+      <div class="captcha-box">
+        <img id="captcha-image" src="{{ url_for('auth.captcha_image', v=captcha_id) }}" alt="Characters to type" width="220" height="76">
+        <button class="btn btn-ghost" type="button" id="captcha-refresh">New image</button>
+      </div>
+      <label>
+        Type the characters
+        <input type="text" name="captcha" required maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      </label>
+    </div>
     <div class="form-actions">
       <button class="btn btn-primary" type="submit">Submit for approval</button>
       <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">Sign in</a>
     </div>
   </form>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.getElementById("captcha-refresh").addEventListener("click", function () {
+    var image = document.getElementById("captcha-image");
+    image.src = "{{ url_for('auth.captcha_image') }}?refresh=1&t=" + Date.now();
+    var field = document.querySelector("[name=captcha]");
+    if (field) field.value = "";
+  });
+</script>
 {% endblock %}

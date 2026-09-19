@@ -1,10 +1,12 @@
+import io
 import re
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, send_file, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import generate_password_hash
 
 from app import db
+from app.captcha import captcha_matches, clear_captcha, current_code, issue_captcha, render_captcha
 from app.models import Tenant, TenantApplication, User
 from app.tenancy import platform_admin_required
 
@@ -45,29 +47,41 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
 
+    form = {
+        "name": "",
+        "email": "",
+        "organization_name": "",
+    }
     if request.method == "POST":
-        name = (request.form.get("name") or "").strip()
-        email = (request.form.get("email") or "").strip().lower()
+        form["name"] = (request.form.get("name") or "").strip()
+        form["email"] = (request.form.get("email") or "").strip().lower()
+        form["organization_name"] = (request.form.get("organization_name") or "").strip()
         password = request.form.get("password") or ""
-        organization_name = (request.form.get("organization_name") or "").strip()
+        confirm = request.form.get("confirm_password") or ""
 
         errors = []
-        if not name:
+        if not form["name"]:
             errors.append("Name is required.")
-        if not valid_email(email):
+        if not valid_email(form["email"]):
             errors.append("Enter a valid email address.")
         if len(password) < 6:
             errors.append("Password must be at least 6 characters.")
-        if not organization_name:
+        elif password != confirm:
+            errors.append("Passwords do not match.")
+        if not form["organization_name"]:
             errors.append("Organization name is required.")
+        if current_code() is None:
+            errors.append("The verification image expired. Enter the characters in the new image.")
+        elif not captcha_matches(request.form.get("captcha") or ""):
+            errors.append("The characters did not match the image.")
 
-        if email and not errors:
-            if User.query.filter(db.func.lower(User.email) == email).first():
+        if form["email"] and not errors:
+            if User.query.filter(db.func.lower(User.email) == form["email"]).first():
                 errors.append("That email already belongs to an account.")
-            elif User.query.filter_by(username=email).first():
+            elif User.query.filter_by(username=form["email"]).first():
                 errors.append("That email already belongs to an account.")
             elif TenantApplication.query.filter_by(
-                email=email, status=TenantApplication.STATUS_PENDING
+                email=form["email"], status=TenantApplication.STATUS_PENDING
             ).first():
                 errors.append("That email already has a request waiting for approval.")
 
@@ -76,17 +90,29 @@ def register():
                 flash(message, "error")
         else:
             application = TenantApplication(
-                applicant_name=name,
-                email=email,
+                applicant_name=form["name"],
+                email=form["email"],
                 password_hash=generate_password_hash(password),
-                organization_name=organization_name,
+                organization_name=form["organization_name"],
                 status=TenantApplication.STATUS_PENDING,
             )
             db.session.add(application)
             db.session.commit()
-            return redirect(url_for("auth.register_submitted", email=email))
+            clear_captcha()
+            return redirect(url_for("auth.register_submitted", email=form["email"]))
 
-    return render_template("auth/register.html")
+    captcha_id = issue_captcha()
+    return render_template("auth/register.html", form=form, captcha_id=captcha_id)
+
+
+@auth_bp.route("/captcha.png")
+def captcha_image():
+    if request.args.get("refresh") or current_code() is None:
+        issue_captcha()
+    code = current_code()
+    response = send_file(io.BytesIO(render_captcha(code)), mimetype="image/png")
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
 
 
 @auth_bp.route("/register/submitted")
