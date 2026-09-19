@@ -36,32 +36,51 @@
   {% if registrations %}
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>Guest</th>
-            <th>Event</th>
-            <th>Member type</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for reg in registrations %}
+        {% if columns %}
+          <thead>
             <tr>
-              <td>{{ reg.full_name }}</td>
-              <td>{{ reg.event.name }}</td>
-              <td>
-                <span class="badge {% if reg.member_type == 'new' %}badge-new{% else %}badge-existing{% endif %}">
-                  {{ reg.member_type_label }}
-                </span>
-              </td>
-              <td>{{ reg.email }}</td>
-              <td>{{ reg.phone or "—" }}</td>
-              <td><a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">Details</a></td>
+              {% for key, label in columns %}
+                <th>{{ label }}</th>
+              {% endfor %}
+              <th></th>
             </tr>
-          {% endfor %}
-        </tbody>
+          </thead>
+          <tbody>
+            {% for reg in registrations %}
+              <tr>
+                {% for key, label in columns %}
+                  <td>
+                    {% if key == 'first_name' %}
+                      <a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">{{ reg.column_value(key) }}</a>
+                    {% else %}
+                      {{ reg.column_value(key) }}
+                    {% endif %}
+                  </td>
+                {% endfor %}
+                <td><a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">Details</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        {% else %}
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Event</th>
+              <th>Email</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for reg in registrations %}
+              <tr>
+                <td>{{ reg.full_name }}</td>
+                <td>{{ reg.event.name }}</td>
+                <td>{{ reg.email or "—" }}</td>
+                <td><a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">Details</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        {% endif %}
       </table>
     </div>
   {% else %}

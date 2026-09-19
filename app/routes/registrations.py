@@ -2,6 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app import db
+from app.fields import collect_registration, visible_columns
 from app.models import Event, Registration
 from app.tenancy import events_query, get_accessible_event, registrations_query
 
@@ -22,12 +23,20 @@ def list_registrations():
 
     registrations = query.order_by(Registration.created_at.desc()).all()
     events = events_query().order_by(Event.event_date.desc()).all()
+    column_event = None
+    columns = []
+    if event_id:
+        column_event = next((event for event in events if event.id == event_id), None)
+        if column_event:
+            columns = visible_columns(column_event.settings)
     return render_template(
         "registrations/list.html",
         registrations=registrations,
         events=events,
         selected_event_id=event_id,
         selected_member_type=member_type,
+        column_event=column_event,
+        columns=columns,
     )
 
 
@@ -39,61 +48,46 @@ def create_registration():
 
     if request.method == "POST":
         event_id = request.form.get("event_id", type=int)
-        first_name = (request.form.get("first_name") or "").strip()
-        last_name = (request.form.get("last_name") or "").strip()
-        email = (request.form.get("email") or "").strip().lower()
-        phone = (request.form.get("phone") or "").strip()
-        member_type = (request.form.get("member_type") or "").strip()
-        notes = (request.form.get("notes") or "").strip()
-
-        errors = []
         event = events_query().filter_by(id=event_id).first() if event_id else None
+        errors = []
+        values = None
         if not event:
             errors.append("Select an event.")
-        if not first_name:
-            errors.append("First name is required.")
-        if not last_name:
-            errors.append("Last name is required.")
-        if not email or "@" not in email:
-            errors.append("A valid email is required.")
-        if member_type not in Registration.MEMBER_TYPES:
-            errors.append("Select whether this is an existing or new member.")
-
-        if event and email:
-            duplicate = Registration.query.filter_by(
-                event_id=event.id, email=email
-            ).first()
-            if duplicate:
-                errors.append("This email is already registered for that event.")
+        else:
+            errors, values = collect_registration(event, request.form)
+            if values["email"]:
+                duplicate = Registration.query.filter_by(
+                    event_id=event.id, email=values["email"]
+                ).first()
+                if duplicate:
+                    errors.append("This email is already registered for that event.")
 
         if errors:
             for message in errors:
                 flash(message, "error")
+            preselected_event_id = event_id
         else:
             registration = Registration(
                 event_id=event.id,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                phone=phone or None,
-                member_type=member_type,
-                notes=notes or None,
                 registered_by_id=current_user.id,
+                self_registered=False,
+                **values,
             )
             db.session.add(registration)
             db.session.commit()
-            flash(
-                f"{registration.full_name} registered for {event.name} "
-                f"({registration.member_type_label}).",
-                "success",
-            )
+            flash(f"{registration.full_name} registered for {event.name}.", "success")
             return redirect(url_for("events.detail", event_id=event.id))
+
+    active_event = None
+    if preselected_event_id:
+        active_event = events_query().filter_by(id=preselected_event_id).first()
 
     return render_template(
         "registrations/form.html",
         events=events,
         preselected_event_id=preselected_event_id,
-        registration=None,
+        active_event=active_event,
+        settings=active_event.settings if active_event else None,
     )
 
 

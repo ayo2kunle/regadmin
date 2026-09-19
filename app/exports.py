@@ -13,47 +13,25 @@ def _safe_filename(value: str) -> str:
 
 
 def build_event_registrations_workbook(event, registrations) -> BytesIO:
+    from app.fields import visible_columns
+
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Registrations"
 
-    headers = [
-        "First name",
-        "Last name",
-        "Email",
-        "Phone",
-        "Member type",
-        "Notes",
-        "Registered by",
-        "Registered at (UTC)",
-        "Event",
-        "Event date",
-        "Venue",
-    ]
+    columns = visible_columns(event.settings) + [("registered_by", "Registered by")]
+    headers = [label for _key, label in columns] + ["Registered at (UTC)"]
     sheet.append(headers)
     for cell in sheet[1]:
         cell.font = Font(bold=True)
 
     for reg in registrations:
-        sheet.append(
-            [
-                reg.first_name,
-                reg.last_name,
-                reg.email,
-                reg.phone or "",
-                reg.member_type_label,
-                reg.notes or "",
-                reg.registered_by_user.username,
-                reg.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                event.name,
-                event.event_date.strftime("%Y-%m-%d"),
-                event.venue,
-            ]
-        )
+        row = [reg.column_value(key) for key, _label in columns]
+        row.append(reg.created_at.strftime("%Y-%m-%d %H:%M:%S"))
+        sheet.append(row)
 
-    widths = [16, 16, 28, 16, 16, 30, 16, 22, 24, 14, 24]
-    for index, width in enumerate(widths, start=1):
-        sheet.column_dimensions[get_column_letter(index)].width = width
+    for index in range(1, len(headers) + 1):
+        sheet.column_dimensions[get_column_letter(index)].width = 22
 
     output = BytesIO()
     workbook.save(output)

@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 
 from flask_login import UserMixin
@@ -89,6 +90,12 @@ class Event(db.Model):
     event_date = db.Column(db.Date, nullable=False)
     venue = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    field_config = db.Column(db.Text, nullable=True)
+    cover_image = db.Column(db.LargeBinary, nullable=True)
+    cover_mime = db.Column(db.String(80), nullable=True)
+    cover_x = db.Column(db.Float, nullable=False, default=50)
+    cover_y = db.Column(db.Float, nullable=False, default=50)
+    cover_scale = db.Column(db.Float, nullable=False, default=1)
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
@@ -105,6 +112,16 @@ class Event(db.Model):
     def registration_count(self) -> int:
         return self.registrations.count()
 
+    @property
+    def settings(self):
+        from app.fields import parse_stored_config
+
+        return parse_stored_config(self.field_config)
+
+    @property
+    def has_cover(self) -> bool:
+        return bool(self.cover_image)
+
 
 class Registration(db.Model):
     __tablename__ = "registrations"
@@ -117,10 +134,12 @@ class Registration(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"), nullable=False, index=True)
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=False, default="")
     phone = db.Column(db.String(40), nullable=True)
-    member_type = db.Column(db.String(20), nullable=False)
+    member_type = db.Column(db.String(20), nullable=False, default="")
     notes = db.Column(db.Text, nullable=True)
+    custom_data = db.Column(db.Text, nullable=True)
+    self_registered = db.Column(db.Boolean, nullable=False, default=False)
     registered_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
@@ -133,4 +152,39 @@ class Registration(db.Model):
 
     @property
     def member_type_label(self) -> str:
-        return "Existing member" if self.member_type == self.MEMBER_EXISTING else "New member"
+        if self.member_type == self.MEMBER_EXISTING:
+            return "Existing member"
+        if self.member_type == self.MEMBER_NEW:
+            return "New member"
+        return ""
+
+    @property
+    def custom_values(self) -> dict:
+        if not self.custom_data:
+            return {}
+        try:
+            loaded = json.loads(self.custom_data)
+        except (TypeError, json.JSONDecodeError):
+            return {}
+        return loaded if isinstance(loaded, dict) else {}
+
+    def column_value(self, key: str) -> str:
+        if key == "first_name":
+            return self.first_name
+        if key == "last_name":
+            return self.last_name
+        if key == "email":
+            return self.email or "—"
+        if key == "phone":
+            return self.phone or "—"
+        if key == "member_type":
+            return self.member_type_label or "—"
+        if key == "notes":
+            return self.notes or "—"
+        if key == "registered_by":
+            if self.self_registered:
+                return "Guest"
+            if self.registered_by_user:
+                return self.registered_by_user.display_name
+            return "—"
+        return self.custom_values.get(key) or "—"

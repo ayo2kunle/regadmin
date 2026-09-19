@@ -7,6 +7,7 @@
     <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.venue }}</p>
   </div>
   <div class="hero-actions">
+    <a class="btn btn-ghost" href="{{ url_for('events.edit_event', event_id=event.id) }}">Edit event</a>
     <a class="btn btn-accent" href="{{ url_for('registrations.create_registration', event_id=event.id) }}">Register user</a>
     {% if registrations %}
       <a class="btn btn-primary" href="{{ url_for('events.export_registrations', event_id=event.id) }}">Download Excel</a>
@@ -23,23 +24,27 @@
         <table>
           <thead>
             <tr>
-              <th>Guest</th>
-              <th>Email</th>
-              <th>Member type</th>
+              {% for key, label in columns %}
+                <th>{{ label }}</th>
+              {% endfor %}
               <th>Registered by</th>
             </tr>
           </thead>
           <tbody>
             {% for reg in registrations %}
               <tr>
-                <td><a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">{{ reg.full_name }}</a></td>
-                <td>{{ reg.email }}</td>
-                <td>
-                  <span class="badge {% if reg.member_type == 'new' %}badge-new{% else %}badge-existing{% endif %}">
-                    {{ reg.member_type_label }}
-                  </span>
-                </td>
-                <td>{{ reg.registered_by_user.username }}</td>
+                {% for key, label in columns %}
+                  <td>
+                    {% if key == 'first_name' %}
+                      <a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">{{ reg.column_value(key) }}</a>
+                    {% elif key == 'member_type' and reg.member_type %}
+                      <span class="badge {% if reg.member_type == 'new' %}badge-new{% else %}badge-existing{% endif %}">{{ reg.member_type_label }}</span>
+                    {% else %}
+                      {{ reg.column_value(key) }}
+                    {% endif %}
+                  </td>
+                {% endfor %}
+                <td>{{ reg.column_value('registered_by') }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -50,29 +55,46 @@
     {% endif %}
   </section>
 
-  <aside class="panel">
-    <h2>Event details</h2>
-    <dl class="meta-list">
-      <div>
-        <dt>Date</dt>
-        <dd>{{ event.event_date.strftime("%b %d, %Y") }}</dd>
+  <aside>
+    <section class="panel">
+      {% if event.has_cover %}
+        <div class="event-hero-cover" style="--x: {{ event.cover_x }}%; --y: {{ event.cover_y }}%; --scale: {{ event.cover_scale }};">
+          <img src="{{ url_for('events.cover', event_id=event.id) }}" alt="">
+        </div>
+      {% endif %}
+      <h2>Event details</h2>
+      <dl class="meta-list">
+        <div>
+          <dt>Date</dt>
+          <dd>{{ event.event_date.strftime("%b %d, %Y") }}</dd>
+        </div>
+        <div>
+          <dt>Venue</dt>
+          <dd>{{ event.venue }}</dd>
+        </div>
+        <div>
+          <dt>Created by</dt>
+          <dd>{{ event.creator.display_name }}</dd>
+        </div>
+        <div>
+          <dt>Total guests</dt>
+          <dd>{{ registrations|length }}</dd>
+        </div>
+      </dl>
+      {% if event.description %}
+        <p style="margin-top: 1rem;">{{ event.description }}</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Attendee QR code</h2>
+      <p>Guests scan this code to open the registration page for this event.</p>
+      <div class="qr-card">
+        <img src="{{ url_for('events.qr_code', event_id=event.id) }}" alt="QR code to register for {{ event.name }}">
+        <a class="btn btn-ghost" href="{{ url_for('events.qr_code', event_id=event.id, download=1) }}">Download QR</a>
       </div>
-      <div>
-        <dt>Venue</dt>
-        <dd>{{ event.venue }}</dd>
-      </div>
-      <div>
-        <dt>Created by</dt>
-        <dd>{{ event.creator.username }}</dd>
-      </div>
-      <div>
-        <dt>Total guests</dt>
-        <dd>{{ registrations|length }}</dd>
-      </div>
-    </dl>
-    {% if event.description %}
-      <p style="margin-top: 1rem;">{{ event.description }}</p>
-    {% endif %}
+      <p style="margin-top: 0.8rem; word-break: break-all;"><a href="{{ join_url }}">{{ join_url }}</a></p>
+    </section>
   </aside>
 </div>
 {% endblock %}

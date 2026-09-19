@@ -529,6 +529,141 @@ th {
   background: #fffdf9;
 }
 
+.cover-stage,
+.event-hero-cover,
+.event-thumb {
+  --x: 50%;
+  --y: 50%;
+  --scale: 1;
+  position: relative;
+  overflow: hidden;
+  background: #e7efe9;
+}
+
+.cover-stage {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  cursor: grab;
+  touch-action: none;
+}
+
+.cover-stage.is-dragging {
+  cursor: grabbing;
+}
+
+.cover-stage img,
+.event-hero-cover img,
+.event-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--x) var(--y);
+  transform: scale(var(--scale));
+  transform-origin: center;
+  pointer-events: none;
+  display: block;
+}
+
+.cover-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.cover-controls {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.check-line {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+}
+
+.check-line input {
+  width: auto;
+}
+
+.field-config {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.field-config-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 0.8fr;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.field-config-head {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.custom-field-row input[type="text"] {
+  min-width: 0;
+}
+
+.event-thumb {
+  display: block;
+  width: 72px;
+  height: 48px;
+  border-radius: 8px;
+  flex: 0 0 auto;
+}
+
+.event-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.event-hero-cover {
+  width: min(420px, 100%);
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  margin-bottom: 1rem;
+}
+
+.qr-card {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.qr-card img {
+  width: 180px;
+  height: 180px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.public-card {
+  width: min(640px, 100%);
+  margin: 1rem auto 2rem;
+}
+
+@media (max-width: 700px) {
+  .field-config-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .scope-form {
   margin: 0;
 }

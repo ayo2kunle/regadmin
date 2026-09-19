@@ -1,0 +1,64 @@
+<div class="form-grid two">
+  <label>
+    First name
+    <input type="text" name="first_name" required maxlength="100" value="{{ request.form.get('first_name', '') }}">
+  </label>
+  <label>
+    Last name
+    <input type="text" name="last_name" required maxlength="100" value="{{ request.form.get('last_name', '') }}">
+  </label>
+</div>
+
+{% set email_field = settings.builtin.email %}
+{% set phone_field = settings.builtin.phone %}
+{% set member_field = settings.builtin.member_type %}
+{% set notes_field = settings.builtin.notes %}
+
+{% if email_field.visible or phone_field.visible %}
+  <div class="form-grid two">
+    {% if email_field.visible %}
+      <label>
+        Email {% if not email_field.required %}<span class="muted">(optional)</span>{% endif %}
+        <input type="email" name="email" maxlength="255" {% if email_field.required %}required{% endif %} value="{{ request.form.get('email', '') }}">
+      </label>
+    {% endif %}
+    {% if phone_field.visible %}
+      <label>
+        Phone {% if not phone_field.required %}<span class="muted">(optional)</span>{% endif %}
+        <input type="tel" name="phone" maxlength="40" {% if phone_field.required %}required{% endif %} value="{{ request.form.get('phone', '') }}">
+      </label>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if member_field.visible %}
+  <fieldset style="border: 0; padding: 0; margin: 0;">
+    <legend style="font-weight: 700; margin-bottom: 0.5rem; color: var(--brand-deep);">
+      Member status {% if not member_field.required %}<span class="muted">(optional)</span>{% endif %}
+    </legend>
+    <div class="member-choice">
+      <label>
+        <input type="radio" name="member_type" value="existing" {% if request.form.get('member_type') == 'existing' %}checked{% endif %} {% if member_field.required %}required{% endif %}>
+        Existing member
+      </label>
+      <label>
+        <input type="radio" name="member_type" value="new" {% if request.form.get('member_type') == 'new' %}checked{% endif %} {% if member_field.required %}required{% endif %}>
+        New member
+      </label>
+    </div>
+  </fieldset>
+{% endif %}
+
+{% for field in settings.custom if field.visible %}
+  <label>
+    {{ field.label }} {% if not field.required %}<span class="muted">(optional)</span>{% endif %}
+    <input type="text" name="custom_{{ field.key }}" maxlength="500" {% if field.required %}required{% endif %} value="{{ request.form.get('custom_' ~ field.key, '') }}">
+  </label>
+{% endfor %}
+
+{% if notes_field.visible %}
+  <label>
+    Notes {% if not notes_field.required %}<span class="muted">(optional)</span>{% endif %}
+    <textarea name="notes" {% if notes_field.required %}required{% endif %}>{{ request.form.get('notes', '') }}</textarea>
+  </label>
+{% endif %}

@@ -35,6 +35,16 @@ def _add_missing_columns():
         },
         "events": {
             "tenant_id": "tenant_id INTEGER",
+            "field_config": "field_config TEXT",
+            "cover_image": "cover_image " + ("BYTEA" if is_postgres else "BLOB"),
+            "cover_mime": "cover_mime VARCHAR(80)",
+            "cover_x": ("cover_x DOUBLE PRECISION NOT NULL DEFAULT 50" if is_postgres else "cover_x REAL NOT NULL DEFAULT 50"),
+            "cover_y": ("cover_y DOUBLE PRECISION NOT NULL DEFAULT 50" if is_postgres else "cover_y REAL NOT NULL DEFAULT 50"),
+            "cover_scale": ("cover_scale DOUBLE PRECISION NOT NULL DEFAULT 1" if is_postgres else "cover_scale REAL NOT NULL DEFAULT 1"),
+        },
+        "registrations": {
+            "custom_data": "custom_data TEXT",
+            "self_registered": f"self_registered {boolean}",
         },
     }
     changed = False

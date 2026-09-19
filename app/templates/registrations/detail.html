@@ -27,32 +27,25 @@
       <dd>{{ registration.event.venue }}</dd>
     </div>
     <div>
-      <dt>Email</dt>
-      <dd>{{ registration.email }}</dd>
-    </div>
-    <div>
-      <dt>Phone</dt>
-      <dd>{{ registration.phone or "—" }}</dd>
-    </div>
-    <div>
-      <dt>Member type</dt>
-      <dd>
-        <span class="badge {% if registration.member_type == 'new' %}badge-new{% else %}badge-existing{% endif %}">
-          {{ registration.member_type_label }}
-        </span>
-      </dd>
-    </div>
-    <div>
       <dt>Registered by</dt>
-      <dd>{{ registration.registered_by_user.username }}</dd>
+      <dd>{{ registration.column_value('registered_by') }}</dd>
     </div>
     <div>
       <dt>Registered at</dt>
       <dd>{{ registration.created_at.strftime("%b %d, %Y %H:%M") }} UTC</dd>
     </div>
+    {% for key, spec in registration.event.settings.builtin.items() if spec.visible %}
+      <div>
+        <dt>{{ spec.label }}</dt>
+        <dd>{{ registration.column_value(key) }}</dd>
+      </div>
+    {% endfor %}
+    {% for field in registration.event.settings.custom if field.visible %}
+      <div>
+        <dt>{{ field.label }}</dt>
+        <dd>{{ registration.column_value(field.key) }}</dd>
+      </div>
+    {% endfor %}
   </dl>
-  {% if registration.notes %}
-    <p style="margin-top: 1.25rem;"><strong>Notes:</strong> {{ registration.notes }}</p>
-  {% endif %}
 </section>
 {% endblock %}

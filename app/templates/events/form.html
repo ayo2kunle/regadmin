@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Create event — RegAdmin{% endblock %}
+{% block title %}{% if event %}Edit event{% else %}Create event{% endif %} — RegAdmin{% endblock %}
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>Create event</h1>
-    <p>Capture the event name, date, and venue. Registrations will be tied to this event.</p>
+    <h1>{% if event %}Edit event{% else %}Create event{% endif %}</h1>
+    <p>Set the photo, date, and venue. Registration fields below apply only to this event.</p>
   </div>
 </div>
 
-<section class="panel" style="max-width: 720px;">
-  <form method="post" class="form-grid">
+<section class="panel" style="max-width: 760px;">
+  <form method="post" class="form-grid" enctype="multipart/form-data">
     <label>
       Event name
-      <input type="text" name="name" required maxlength="200" placeholder="e.g. Annual Gathering">
+      <input type="text" name="name" required maxlength="200" value="{{ request.form.get('name', event.name if event else '') }}">
     </label>
     {% if tenants %}
       <label>
@@ -27,21 +27,115 @@
     <div class="form-grid two">
       <label>
         Date
-        <input type="date" name="event_date" required>
+        <input type="date" name="event_date" required value="{{ request.form.get('event_date', event.event_date.isoformat() if event else '') }}">
       </label>
       <label>
         Venue
-        <input type="text" name="venue" required maxlength="255" placeholder="e.g. Community Hall">
+        <input type="text" name="venue" required maxlength="255" value="{{ request.form.get('venue', event.venue if event else '') }}">
       </label>
     </div>
     <label>
       Description <span class="muted">(optional)</span>
-      <textarea name="description" placeholder="Short notes about the event"></textarea>
+      <textarea name="description">{{ request.form.get('description', event.description if event and event.description else '') }}</textarea>
     </label>
+
+    <div>
+      <h2>Event image</h2>
+      <p>Add a photo, then drag it and use the slider until the framing looks right.</p>
+      <div
+        class="cover-stage"
+        id="cover-stage"
+        style="--x: {{ request.form.get('cover_x', event.cover_x if event else 50) }}%; --y: {{ request.form.get('cover_y', event.cover_y if event else 50) }}%; --scale: {{ request.form.get('cover_scale', event.cover_scale if event else 1) }};"
+      >
+        <img
+          id="cover-preview"
+          alt=""
+          {% if event and event.has_cover %}src="{{ url_for('events.cover', event_id=event.id) }}"{% endif %}
+          {% if not event or not event.has_cover %}hidden{% endif %}
+        >
+        <span class="cover-placeholder" id="cover-placeholder" {% if event and event.has_cover %}hidden{% endif %}>No image yet</span>
+      </div>
+      <div class="cover-controls">
+        <label>
+          Image file
+          <input type="file" id="cover-file" name="cover" accept="image/jpeg,image/png,image/webp,image/gif">
+        </label>
+        <label>
+          Zoom
+          <input type="range" id="cover-scale" name="cover_scale" min="1" max="3" step="0.05" value="{{ request.form.get('cover_scale', event.cover_scale if event else 1) }}">
+        </label>
+        {% if event and event.has_cover %}
+          <label class="check-line">
+            <input type="checkbox" name="remove_cover" value="1">
+            Remove image
+          </label>
+        {% endif %}
+      </div>
+      <input type="hidden" name="cover_x" id="cover-x" value="{{ request.form.get('cover_x', event.cover_x if event else 50) }}">
+      <input type="hidden" name="cover_y" id="cover-y" value="{{ request.form.get('cover_y', event.cover_y if event else 50) }}">
+    </div>
+
+    <div>
+      <h2>Registration fields</h2>
+      <p>First name and last name are always required. Show or hide the other fields. These choices belong only to this event.</p>
+      <div class="field-config">
+        <div class="field-config-row field-config-head">
+          <span>Field</span>
+          <span>Show</span>
+          <span>Required</span>
+        </div>
+        <div class="field-config-row">
+          <span>First name</span>
+          <span class="muted">Always</span>
+          <span class="muted">Always</span>
+        </div>
+        <div class="field-config-row">
+          <span>Last name</span>
+          <span class="muted">Always</span>
+          <span class="muted">Always</span>
+        </div>
+        {% for key, spec in settings.builtin.items() %}
+          <div class="field-config-row">
+            <span>{{ spec.label }}</span>
+            <label class="check-line">
+              <input type="checkbox" name="show_{{ key }}" value="1" {% if spec.visible %}checked{% endif %} data-show-for="{{ key }}">
+              Show
+            </label>
+            <label class="check-line">
+              <input type="checkbox" name="require_{{ key }}" value="1" {% if spec.required %}checked{% endif %} data-require-for="{{ key }}">
+              Required
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+
+      <h3>Custom fields</h3>
+      <p>Add up to 5 fields that exist only on this event.</p>
+      <div class="field-config">
+        {% for slot in custom_slots %}
+          <div class="field-config-row custom-field-row">
+            <input type="text" name="custom_label_{{ loop.index0 }}" maxlength="80" placeholder="Field {{ loop.index }} label" value="{{ slot.label }}">
+            <label class="check-line">
+              <input type="checkbox" name="custom_show_{{ loop.index0 }}" value="1" {% if slot.visible %}checked{% endif %} data-show-for="custom-{{ loop.index0 }}">
+              Show
+            </label>
+            <label class="check-line">
+              <input type="checkbox" name="custom_require_{{ loop.index0 }}" value="1" {% if slot.required %}checked{% endif %} data-require-for="custom-{{ loop.index0 }}">
+              Required
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
     <div class="form-actions">
-      <button class="btn btn-primary" type="submit">Save event</button>
-      <a class="btn btn-ghost" href="{{ url_for('events.list_events') }}">Cancel</a>
+      <button class="btn btn-primary" type="submit">{% if event %}Save changes{% else %}Save event{% endif %}</button>
+      <a class="btn btn-ghost" href="{{ url_for('events.detail', event_id=event.id) if event else url_for('events.list_events') }}">Cancel</a>
     </div>
   </form>
 </section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cover.js') }}"></script>
+<script src="{{ url_for('static', filename='js/fields.js') }}"></script>
 {% endblock %}
