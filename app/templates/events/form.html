@@ -37,7 +37,7 @@
 
     <div id="address-picker">
       <label id="saved-address" {% if not addresses %}hidden{% endif %}>
-        Address on file
+        Select address
         <select name="address_id" id="address-id">
           <option value="">Add a new address</option>
           {% for address in addresses %}
@@ -48,7 +48,7 @@
         </select>
       </label>
       <div id="new-address" {% if selected_address_id %}hidden{% endif %}>
-        <p class="muted">{% if addresses %}Or add a street address. It is saved for the next event.{% else %}No address on file yet. Add one and it is saved for this organization.{% endif %}</p>
+        <p class="muted">{% if addresses %}Or add a street address. It is saved for the next event.{% else %}Add one and it is saved for this organization.{% endif %}</p>
         {% include "addresses/_fields.html" %}
       </div>
     </div>
