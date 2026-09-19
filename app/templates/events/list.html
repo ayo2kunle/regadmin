@@ -28,7 +28,7 @@
         <tbody>
           {% for event in events %}
             <tr>
-              <td>
+              <td data-label="Name">
                 <div class="event-name-cell">
                   {% if event.has_cover %}
                     <span class="event-thumb" style="--x: {{ event.cover_x }}%; --y: {{ event.cover_y }}%; --scale: {{ event.cover_scale }};">
@@ -38,20 +38,17 @@
                   <span>{{ event.name }}</span>
                 </div>
               </td>
-              <td>{{ event.event_date.strftime("%b %d, %Y") }}</td>
-              <td>{{ event.venue }}</td>
+              <td data-label="Date">{{ event.event_date.strftime("%b %d, %Y") }}</td>
+              <td data-label="Venue">{{ event.venue }}</td>
               {% if platform_admin and tenant_scope|string == 'all' %}
-                <td>{{ event.tenant.name if event.tenant else "—" }}</td>
+                <td data-label="Organization">{{ event.tenant.name if event.tenant else "—" }}</td>
               {% endif %}
-              <td>{{ event.registration_count }}</td>
-              <td>
+              <td data-label="Registrations">{{ event.registration_count }}</td>
+              <td class="row-actions" data-label="">
                 <a href="{{ url_for('events.detail', event_id=event.public_id) }}">View</a>
-                ·
                 <a href="{{ url_for('events.qr_poster', event_id=event.public_id) }}">QR code</a>
-                ·
                 <a href="{{ url_for('registrations.create_registration', event_id=event.public_id) }}">Register</a>
                 {% if event.registration_count %}
-                  ·
                   <a href="{{ url_for('events.export_registrations', event_id=event.public_id) }}">Excel</a>
                 {% endif %}
               </td>

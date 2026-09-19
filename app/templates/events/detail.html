@@ -35,7 +35,7 @@
             {% for reg in registrations %}
               <tr>
                 {% for key, label in columns %}
-                  <td>
+                  <td data-label="{{ label }}">
                     {% if key == 'first_name' %}
                       <a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">{{ reg.column_value(key) }}</a>
                     {% elif key == 'member_type' and reg.member_type %}
@@ -45,7 +45,7 @@
                     {% endif %}
                   </td>
                 {% endfor %}
-                <td>{{ reg.column_value('registered_by') }}</td>
+                <td data-label="Registered by">{{ reg.column_value('registered_by') }}</td>
               </tr>
             {% endfor %}
           </tbody>

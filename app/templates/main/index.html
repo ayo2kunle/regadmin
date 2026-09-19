@@ -6,7 +6,8 @@
   <h1>Registration for your organization.</h1>
   <p>Register your organization to subscribe. An admin reviews the request before your tenant is created.</p>
   <div class="hero-actions">
-    <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Register</a>
+    <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Register your organization</a>
+    <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">Sign in</a>
   </div>
 </section>
 {% endblock %}

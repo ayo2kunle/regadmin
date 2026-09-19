@@ -50,10 +50,10 @@
           <tbody>
             {% for event in upcoming_events %}
               <tr>
-                <td>{{ event.name }}</td>
-                <td>{{ event.event_date.strftime("%b %d, %Y") }}</td>
-                <td>{{ event.venue }}</td>
-                <td><a href="{{ url_for('events.detail', event_id=event.public_id) }}">View</a></td>
+                <td data-label="Event">{{ event.name }}</td>
+                <td data-label="Date">{{ event.event_date.strftime("%b %d, %Y") }}</td>
+                <td data-label="Venue">{{ event.venue }}</td>
+                <td class="row-actions" data-label=""><a href="{{ url_for('events.detail', event_id=event.public_id) }}">View</a></td>
               </tr>
             {% endfor %}
           </tbody>
@@ -79,9 +79,9 @@
           <tbody>
             {% for reg in recent_registrations %}
               <tr>
-                <td><a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">{{ reg.full_name }}</a></td>
-                <td>{{ reg.event.name }}</td>
-                <td>
+                <td data-label="Guest"><a href="{{ url_for('registrations.detail', registration_id=reg.id) }}">{{ reg.full_name }}</a></td>
+                <td data-label="Event">{{ reg.event.name }}</td>
+                <td data-label="Type">
                   <span class="badge {% if reg.member_type == 'new' %}badge-new{% else %}badge-existing{% endif %}">
                     {{ reg.member_type_label }}
                   </span>

@@ -25,15 +25,15 @@
         <tbody>
           {% for application in pending %}
             <tr>
-              <td>{{ application.applicant_name }}</td>
-              <td>{{ application.email }}</td>
-              <td>{{ application.organization_name }}</td>
-              <td>{{ application.created_at.strftime("%b %d, %Y") }}</td>
-              <td>
-                <form method="post" action="{{ url_for('tenants.approve', application_id=application.id) }}" style="display:inline;">
+              <td data-label="Name">{{ application.applicant_name }}</td>
+              <td data-label="Email">{{ application.email }}</td>
+              <td data-label="Organization">{{ application.organization_name }}</td>
+              <td data-label="Requested">{{ application.created_at.strftime("%b %d, %Y") }}</td>
+              <td class="row-actions" data-label="">
+                <form method="post" action="{{ url_for('tenants.approve', application_id=application.id) }}">
                   <button class="btn btn-primary" type="submit">Approve</button>
                 </form>
-                <form method="post" action="{{ url_for('tenants.reject', application_id=application.id) }}" style="display:inline;">
+                <form method="post" action="{{ url_for('tenants.reject', application_id=application.id) }}">
                   <button class="btn btn-ghost" type="submit">Decline</button>
                 </form>
               </td>
@@ -64,7 +64,7 @@
         <tbody>
           {% for tenant in tenants %}
             <tr>
-              <td>
+              <td data-label="Organization">
                 <span class="logo-cell">
                   {% if tenant.has_logo %}
                     <img class="org-logo" src="{{ url_for('tenants.logo', public_id=tenant.public_id) }}" alt="">
@@ -75,10 +75,10 @@
                   </span>
                 </span>
               </td>
-              <td>{{ tenant.plan }}</td>
-              <td>{{ tenant.subscription_status }}</td>
-              <td>{{ tenant.users.count() }}</td>
-              <td>{{ tenant.created_at.strftime("%b %d, %Y") }}</td>
+              <td data-label="Plan">{{ tenant.plan }}</td>
+              <td data-label="Status">{{ tenant.subscription_status }}</td>
+              <td data-label="Users">{{ tenant.users.count() }}</td>
+              <td data-label="Created">{{ tenant.created_at.strftime("%b %d, %Y") }}</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -104,9 +104,9 @@
       <tbody>
         {% for application in rejected %}
           <tr>
-            <td>{{ application.applicant_name }}</td>
-            <td>{{ application.email }}</td>
-            <td>{{ application.organization_name }}</td>
+            <td data-label="Name">{{ application.applicant_name }}</td>
+            <td data-label="Email">{{ application.email }}</td>
+            <td data-label="Organization">{{ application.organization_name }}</td>
           </tr>
         {% endfor %}
       </tbody>

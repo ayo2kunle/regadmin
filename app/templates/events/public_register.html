@@ -2,24 +2,28 @@
 {% block title %}Register — {{ event.name }}{% endblock %}
 {% block content %}
 <section class="panel public-card">
-  {% if event.tenant and event.tenant.shows_logo('logo_on_public') %}
-    <p class="public-org">
-      <img class="org-logo" src="{{ url_for('tenants.logo', public_id=event.tenant.public_id) }}" alt="">
-      {{ event.tenant.name }}
-    </p>
-  {% endif %}
   {% if event.has_cover %}
     <div class="event-hero-cover" style="--x: {{ event.cover_x }}%; --y: {{ event.cover_y }}%; --scale: {{ event.cover_scale }};">
       <img src="{{ url_for('events.cover', event_id=event.public_id) }}" alt="">
     </div>
   {% endif %}
-  <h1>{{ event.name }}</h1>
-  <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.venue }}</p>
-  {% if event.description %}
-    <p>{{ event.description }}</p>
-  {% endif %}
+  <div class="public-body">
+    {% if event.tenant and event.tenant.shows_logo('logo_on_public') %}
+      <p class="public-org">
+        <img class="org-logo" src="{{ url_for('tenants.logo', public_id=event.tenant.public_id) }}" alt="">
+        {{ event.tenant.name }}
+      </p>
+    {% endif %}
+    <h1>{{ event.name }}</h1>
+    <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.venue }}</p>
+    {% if event.description %}
+      <p>{{ event.description }}</p>
+    {% endif %}
+  </div>
   <form method="post" class="form-grid">
-    {% include "registrations/_fields.html" %}
+    <div class="public-body">
+      {% include "registrations/_fields.html" %}
+    </div>
     <div class="form-actions">
       <button class="btn btn-primary" type="submit">Register</button>
     </div>

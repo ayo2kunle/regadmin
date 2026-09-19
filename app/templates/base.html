@@ -2,14 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14352c">
+  <meta name="color-scheme" content="light">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>{% block title %}RegAdmin{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,680&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body class="{% if current_user.is_authenticated %}signed-in{% endif %}">
   <div class="site-shell">
     <header class="topbar">
       <div class="brand-row">
@@ -21,7 +26,7 @@
           </span>
         {% endif %}
       </div>
-      <nav class="nav-links">
+      <nav class="nav-links" aria-label="Primary">
         {% if current_user.is_authenticated %}
           <a href="{{ url_for('main.dashboard') }}" class="{% if request.endpoint == 'main.dashboard' %}active{% endif %}">Dashboard</a>
           <a href="{{ url_for('events.list_events') }}" class="{% if request.blueprint == 'events' %}active{% endif %}">Events</a>
@@ -31,8 +36,8 @@
             <a href="{{ url_for('tenants.settings') }}" class="{% if request.endpoint == 'tenants.settings' %}active{% endif %}">Organization</a>
           {% endif %}
           {% if platform_admin %}
-            <a href="{{ url_for('tenants.index') }}" class="{% if request.blueprint == 'tenants' %}active{% endif %}">
-              Organizations{% if pending_application_count %} ({{ pending_application_count }}){% endif %}
+            <a href="{{ url_for('tenants.index') }}" class="{% if request.blueprint == 'tenants' and request.endpoint != 'tenants.settings' %}active{% endif %}">
+              Organizations{% if pending_application_count %} <span class="nav-count">{{ pending_application_count }}</span>{% endif %}
             </a>
             <a href="{{ url_for('auth.list_admins') }}" class="{% if request.endpoint in ['auth.list_admins', 'auth.create_admin'] %}active{% endif %}">Admins</a>
             <form class="scope-form" method="post" action="{{ url_for('tenants.set_scope') }}">
@@ -44,10 +49,10 @@
               </select>
             </form>
           {% endif %}
-          <a href="{{ url_for('auth.logout') }}">Sign out ({{ current_user.display_name }})</a>
+          <a href="{{ url_for('auth.logout') }}">Sign out</a>
         {% else %}
-          <a href="{{ url_for('auth.register') }}">Register</a>
-          <a href="{{ url_for('auth.login') }}">Sign in</a>
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('auth.login') }}">Sign in</a>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('auth.register') }}">Register</a>
         {% endif %}
       </nav>
     </header>
@@ -57,7 +62,7 @@
         {% if messages %}
           <div class="flash-stack">
             {% for category, message in messages %}
-              <div class="flash {{ category }}">{{ message }}</div>
+              <div class="flash {{ category }}" role="status">{{ message }}</div>
             {% endfor %}
           </div>
         {% endif %}
@@ -65,7 +70,70 @@
 
       {% block content %}{% endblock %}
     </main>
+
+    {% if current_user.is_authenticated %}
+      <nav class="tabbar" aria-label="Mobile">
+        <a class="tab {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>
+          Home
+        </a>
+        <a class="tab {% if request.blueprint == 'events' %}active{% endif %}" href="{{ url_for('events.list_events') }}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2V3h-2v2H9V3zm12 8H5v8h14z"/></svg>
+          Events
+        </a>
+        <a class="tab {% if request.blueprint == 'registrations' %}active{% endif %}" href="{{ url_for('registrations.list_registrations') }}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm8 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM3 19c0-2.8 2.4-4.5 5-4.5s5 1.7 5 4.5v1H3zm11 .5c0-1.6.6-3 1.7-4 1.4-.3 3-.2 4.3.8V20.5z"/></svg>
+          People
+        </a>
+        <button class="tab" type="button" id="open-more" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+          More
+        </button>
+      </nav>
+      <dialog class="sheet" id="more-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head">
+          <h2>More</h2>
+          <button class="btn btn-ghost btn-sm" type="button" id="close-more">Close</button>
+        </div>
+        <div class="sheet-links">
+          <a href="{{ url_for('registrations.create_registration') }}">Register a user</a>
+          {% if tenant_admin %}
+            <a href="{{ url_for('tenants.settings') }}">Organization settings</a>
+          {% endif %}
+          {% if platform_admin %}
+            <a href="{{ url_for('tenants.index') }}">Organizations{% if pending_application_count %} ({{ pending_application_count }}){% endif %}</a>
+            <a href="{{ url_for('auth.list_admins') }}">Admins</a>
+            <form class="scope-form" method="post" action="{{ url_for('tenants.set_scope') }}">
+              <label>
+                Viewing
+                <select class="nav-select" name="tenant_scope" onchange="this.form.submit()">
+                  <option value="all" {% if tenant_scope|string == 'all' %}selected{% endif %}>All organizations</option>
+                  {% for tenant in scope_tenants %}
+                    <option value="{{ tenant.public_id }}" {% if tenant_scope == tenant.public_id %}selected{% endif %}>{{ tenant.name }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+            </form>
+          {% endif %}
+          <a href="{{ url_for('auth.logout') }}">Sign out ({{ current_user.display_name }})</a>
+        </div>
+      </dialog>
+    {% endif %}
   </div>
+  <script>
+    (function () {
+      var sheet = document.getElementById("more-sheet");
+      var open = document.getElementById("open-more");
+      var close = document.getElementById("close-more");
+      if (!sheet || !open) return;
+      open.addEventListener("click", function () { sheet.showModal(); });
+      if (close) close.addEventListener("click", function () { sheet.close(); });
+      sheet.addEventListener("click", function (event) {
+        if (event.target === sheet) sheet.close();
+      });
+    })();
+  </script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

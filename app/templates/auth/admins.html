@@ -22,13 +22,13 @@
         <tbody>
           {% for admin in admins %}
             <tr>
-              <td>
+              <td data-label="Username">
                 {{ admin.username }}
                 {% if admin.id == current_user.id %}
                   <span class="muted">(you)</span>
                 {% endif %}
               </td>
-              <td>{{ admin.created_at.strftime("%b %d, %Y") }}</td>
+              <td data-label="Created">{{ admin.created_at.strftime("%b %d, %Y") }}</td>
             </tr>
           {% endfor %}
         </tbody>
