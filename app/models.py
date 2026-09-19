@@ -19,6 +19,7 @@ class Tenant(db.Model):
     PLAN_STARTER = "starter"
 
     id = db.Column(db.Integer, primary_key=True)
+    public_id = db.Column(db.String(12), unique=True, nullable=True, index=True)
     name = db.Column(db.String(200), nullable=False)
     plan = db.Column(db.String(40), nullable=False, default=PLAN_STARTER)
     subscription_status = db.Column(db.String(20), nullable=False, default="active")
@@ -85,6 +86,7 @@ class Event(db.Model):
     __tablename__ = "events"
 
     id = db.Column(db.Integer, primary_key=True)
+    public_id = db.Column(db.String(12), unique=True, nullable=True, index=True)
     tenant_id = db.Column(db.Integer, db.ForeignKey("tenants.id"), nullable=True, index=True)
     name = db.Column(db.String(200), nullable=False)
     event_date = db.Column(db.Date, nullable=False)

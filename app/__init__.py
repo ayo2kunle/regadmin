@@ -55,10 +55,10 @@ def create_app(config_class=Config):
             status=TenantApplication.STATUS_PENDING
         ).count()
         if scope not in (None, "all"):
-            try:
+            tenant = Tenant.query.filter_by(public_id=str(scope)).first()
+            if tenant is None and str(scope).isdigit():
                 tenant = db.session.get(Tenant, int(scope))
-            except (TypeError, ValueError):
-                tenant = None
+            context["tenant_scope"] = tenant.public_id if tenant else "all"
             context["viewing_org"] = tenant.name if tenant else None
         return context
 

@@ -54,6 +54,9 @@ def approve(application_id):
         subscription_status="active",
         is_founding=False,
     )
+    from app.codes import assign_public_id
+
+    assign_public_id(tenant)
     db.session.add(tenant)
     db.session.flush()
 
@@ -101,9 +104,9 @@ def set_scope():
     if value == ALL_TENANTS:
         session["tenant_scope"] = ALL_TENANTS
     else:
-        tenant = Tenant.query.get(int(value))
+        tenant = Tenant.query.filter_by(public_id=value).first()
         if tenant is None:
             flash("That organization was not found.", "error")
         else:
-            session["tenant_scope"] = tenant.id
+            session["tenant_scope"] = tenant.public_id
     return redirect(request.referrer or url_for("main.dashboard"))

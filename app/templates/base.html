@@ -28,7 +28,7 @@
               <select class="nav-select" name="tenant_scope" onchange="this.form.submit()" aria-label="Organization">
                 <option value="all" {% if tenant_scope|string == 'all' %}selected{% endif %}>All organizations</option>
                 {% for tenant in scope_tenants %}
-                  <option value="{{ tenant.id }}" {% if tenant_scope|string == tenant.id|string %}selected{% endif %}>{{ tenant.name }}</option>
+                  <option value="{{ tenant.public_id }}" {% if tenant_scope == tenant.public_id %}selected{% endif %}>{{ tenant.name }}</option>
                 {% endfor %}
               </select>
             </form>

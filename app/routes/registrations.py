@@ -1,10 +1,10 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app import db
 from app.fields import collect_registration, visible_columns
 from app.models import Event, Registration
-from app.tenancy import events_query, get_accessible_event, registrations_query
+from app.tenancy import events_query, registrations_query
 
 registrations_bp = Blueprint("registrations", __name__, url_prefix="/registrations")
 
@@ -12,30 +12,30 @@ registrations_bp = Blueprint("registrations", __name__, url_prefix="/registratio
 @registrations_bp.route("/")
 @login_required
 def list_registrations():
-    event_id = request.args.get("event_id", type=int)
+    event_code = (request.args.get("event_id") or "").strip()
     member_type = request.args.get("member_type", "").strip()
 
     query = registrations_query()
-    if event_id:
-        query = query.filter(Registration.event_id == event_id)
+    selected_event = None
+    if event_code:
+        selected_event = events_query().filter_by(public_id=event_code).first()
+        if selected_event:
+            query = query.filter(Registration.event_id == selected_event.id)
     if member_type in Registration.MEMBER_TYPES:
         query = query.filter(Registration.member_type == member_type)
 
     registrations = query.order_by(Registration.created_at.desc()).all()
     events = events_query().order_by(Event.event_date.desc()).all()
-    column_event = None
     columns = []
-    if event_id:
-        column_event = next((event for event in events if event.id == event_id), None)
-        if column_event:
-            columns = visible_columns(column_event.settings)
+    if selected_event:
+        columns = visible_columns(selected_event.settings)
     return render_template(
         "registrations/list.html",
         registrations=registrations,
         events=events,
-        selected_event_id=event_id,
+        selected_event_id=selected_event.public_id if selected_event else "",
         selected_member_type=member_type,
-        column_event=column_event,
+        column_event=selected_event,
         columns=columns,
     )
 
@@ -44,11 +44,11 @@ def list_registrations():
 @login_required
 def create_registration():
     events = events_query().order_by(Event.event_date.asc()).all()
-    preselected_event_id = request.args.get("event_id", type=int)
+    preselected_event_id = (request.args.get("event_id") or "").strip()
 
     if request.method == "POST":
-        event_id = request.form.get("event_id", type=int)
-        event = events_query().filter_by(id=event_id).first() if event_id else None
+        event_code = (request.form.get("event_id") or "").strip()
+        event = events_query().filter_by(public_id=event_code).first() if event_code else None
         errors = []
         values = None
         if not event:
@@ -65,7 +65,7 @@ def create_registration():
         if errors:
             for message in errors:
                 flash(message, "error")
-            preselected_event_id = event_id
+            preselected_event_id = event_code
         else:
             registration = Registration(
                 event_id=event.id,
@@ -76,11 +76,11 @@ def create_registration():
             db.session.add(registration)
             db.session.commit()
             flash(f"{registration.full_name} registered for {event.name}.", "success")
-            return redirect(url_for("events.detail", event_id=event.id))
+            return redirect(url_for("events.detail", event_id=event.public_id))
 
     active_event = None
     if preselected_event_id:
-        active_event = events_query().filter_by(id=preselected_event_id).first()
+        active_event = events_query().filter_by(public_id=preselected_event_id).first()
 
     return render_template(
         "registrations/form.html",
@@ -95,5 +95,6 @@ def create_registration():
 @login_required
 def detail(registration_id):
     registration = Registration.query.get_or_404(registration_id)
-    get_accessible_event(registration.event_id)
+    if events_query().filter(Event.id == registration.event_id).first() is None:
+        abort(404)
     return render_template("registrations/detail.html", registration=registration)

@@ -4,7 +4,7 @@
 <section class="panel public-card">
   {% if event.has_cover %}
     <div class="event-hero-cover" style="--x: {{ event.cover_x }}%; --y: {{ event.cover_y }}%; --scale: {{ event.cover_scale }};">
-      <img src="{{ url_for('events.cover', event_id=event.id) }}" alt="">
+      <img src="{{ url_for('events.cover', event_id=event.public_id) }}" alt="">
     </div>
   {% endif %}
   <h1>{{ event.name }}</h1>

@@ -17,6 +17,7 @@ from app import db
 from app.exports import build_event_registrations_workbook, event_export_filename
 from app.fields import collect_registration, custom_slots, dump_settings, settings_from_form, visible_columns
 from app.models import Event, Registration, Tenant
+from app.codes import assign_public_id
 from app.tenancy import events_query, get_accessible_event, tenant_for_new_record
 
 events_bp = Blueprint("events", __name__, url_prefix="/events")
@@ -70,7 +71,13 @@ def _event_form_context(event):
     selected_tenant_id = current_user.tenant_id
     if current_user.is_platform_admin:
         tenants = Tenant.query.order_by(Tenant.name.asc()).all()
-        selected_tenant_id = event.tenant_id if event else tenant_for_new_record()
+        selected_tenant_id = (
+            event.tenant.public_id if event and event.tenant else None
+        )
+        if not selected_tenant_id:
+            scoped = tenant_for_new_record()
+            scoped_tenant = db.session.get(Tenant, scoped) if scoped else None
+            selected_tenant_id = scoped_tenant.public_id if scoped_tenant else None
     settings = event.settings if event else None
     from app.fields import default_settings
 
@@ -108,8 +115,10 @@ def _read_event_basics():
 
     tenant_id = current_user.tenant_id
     if current_user.is_platform_admin:
-        tenant_id = request.form.get("tenant_id", type=int) or tenant_for_new_record()
-        if not tenant_id or not db.session.get(Tenant, tenant_id):
+        code = (request.form.get("tenant_id") or "").strip()
+        tenant = Tenant.query.filter_by(public_id=code).first()
+        tenant_id = tenant.id if tenant else None
+        if not tenant_id:
             errors.append("Select an organization.")
     return errors, {
         "name": name,
@@ -150,15 +159,16 @@ def create_event():
         else:
             event.name = basics["name"]
             event.venue = basics["venue"]
+            assign_public_id(event)
             db.session.add(event)
             db.session.commit()
             flash(f'Event "{event.name}" created.', "success")
-            return redirect(url_for("events.detail", event_id=event.id))
+            return redirect(url_for("events.detail", event_id=event.public_id))
 
     return render_template("events/form.html", **_event_form_context(None))
 
 
-@events_bp.route("/<int:event_id>/edit", methods=["GET", "POST"])
+@events_bp.route("/<event_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_event(event_id):
     event = get_accessible_event(event_id)
@@ -179,17 +189,17 @@ def edit_event(event_id):
             event.field_config = dump_settings(settings_from_form(request.form))
             db.session.commit()
             flash("Event updated.", "success")
-            return redirect(url_for("events.detail", event_id=event.id))
+            return redirect(url_for("events.detail", event_id=event.public_id))
     return render_template("events/form.html", **_event_form_context(event))
 
 
-@events_bp.route("/<int:event_id>")
+@events_bp.route("/<event_id>")
 @login_required
 def detail(event_id):
     event = get_accessible_event(event_id)
     registrations = event.registrations.order_by(Registration.created_at.desc()).all()
     columns = visible_columns(event.settings)
-    join_url = url_for("events.public_register", event_id=event.id, _external=True)
+    join_url = url_for("events.public_register", event_id=event.public_id, _external=True)
     return render_template(
         "events/detail.html",
         event=event,
@@ -199,9 +209,9 @@ def detail(event_id):
     )
 
 
-@events_bp.route("/<int:event_id>/cover")
+@events_bp.route("/<event_id>/cover")
 def cover(event_id):
-    event = db.session.get(Event, event_id)
+    event = Event.query.filter_by(public_id=event_id).first()
     if event is None or not event.cover_image:
         return ("", 404)
     return send_file(
@@ -211,19 +221,19 @@ def cover(event_id):
     )
 
 
-@events_bp.route("/<int:event_id>/qr")
+@events_bp.route("/<event_id>/qr")
 @login_required
 def qr_poster(event_id):
     event = get_accessible_event(event_id)
-    join_url = url_for("events.public_register", event_id=event.id, _external=True)
+    join_url = url_for("events.public_register", event_id=event.public_id, _external=True)
     return render_template("events/qr.html", event=event, join_url=join_url)
 
 
-@events_bp.route("/<int:event_id>/qr.png")
+@events_bp.route("/<event_id>/qr.png")
 @login_required
 def qr_code(event_id):
     event = get_accessible_event(event_id)
-    join_url = url_for("events.public_register", event_id=event.id, _external=True)
+    join_url = url_for("events.public_register", event_id=event.public_id, _external=True)
     image = qrcode.make(join_url)
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
@@ -237,9 +247,9 @@ def qr_code(event_id):
     )
 
 
-@events_bp.route("/<int:event_id>/register", methods=["GET", "POST"])
+@events_bp.route("/<event_id>/register", methods=["GET", "POST"])
 def public_register(event_id):
-    event = db.session.get(Event, event_id)
+    event = Event.query.filter_by(public_id=event_id).first()
     if event is None:
         return render_template("events/public_missing.html"), 404
 
@@ -272,7 +282,7 @@ def public_register(event_id):
     )
 
 
-@events_bp.route("/<int:event_id>/export.xlsx")
+@events_bp.route("/<event_id>/export.xlsx")
 @login_required
 def export_registrations(event_id):
     event = get_accessible_event(event_id)

@@ -7,7 +7,7 @@
     <p>Registration for {{ registration.event.name }}</p>
   </div>
   <div class="hero-actions">
-    <a class="btn btn-ghost" href="{{ url_for('events.detail', event_id=registration.event_id) }}">Back to event</a>
+    <a class="btn btn-ghost" href="{{ url_for('events.detail', event_id=registration.event.public_id) }}">Back to event</a>
     <a class="btn btn-primary" href="{{ url_for('registrations.list_registrations') }}">All registrations</a>
   </div>
 </div>

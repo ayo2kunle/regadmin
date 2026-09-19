@@ -16,7 +16,7 @@
       <select name="event_id">
         <option value="">All events</option>
         {% for event in events %}
-          <option value="{{ event.id }}" {% if selected_event_id == event.id %}selected{% endif %}>
+          <option value="{{ event.public_id }}" {% if selected_event_id == event.public_id %}selected{% endif %}>
             {{ event.name }} — {{ event.event_date.strftime("%b %d, %Y") }}
           </option>
         {% endfor %}

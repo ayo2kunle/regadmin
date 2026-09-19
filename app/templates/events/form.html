@@ -19,7 +19,7 @@
         Organization
         <select name="tenant_id" required>
           {% for tenant in tenants %}
-            <option value="{{ tenant.id }}" {% if selected_tenant_id == tenant.id %}selected{% endif %}>{{ tenant.name }}</option>
+            <option value="{{ tenant.public_id }}" {% if selected_tenant_id == tenant.public_id %}selected{% endif %}>{{ tenant.name }}</option>
           {% endfor %}
         </select>
       </label>
@@ -50,7 +50,7 @@
         <img
           id="cover-preview"
           alt=""
-          {% if event and event.has_cover %}src="{{ url_for('events.cover', event_id=event.id) }}"{% endif %}
+          {% if event and event.has_cover %}src="{{ url_for('events.cover', event_id=event.public_id) }}"{% endif %}
           {% if not event or not event.has_cover %}hidden{% endif %}
         >
         <span class="cover-placeholder" id="cover-placeholder" {% if event and event.has_cover %}hidden{% endif %}>No image yet</span>
@@ -130,7 +130,7 @@
 
     <div class="form-actions">
       <button class="btn btn-primary" type="submit">{% if event %}Save changes{% else %}Save event{% endif %}</button>
-      <a class="btn btn-ghost" href="{{ url_for('events.detail', event_id=event.id) if event else url_for('events.list_events') }}">Cancel</a>
+      <a class="btn btn-ghost" href="{{ url_for('events.detail', event_id=event.public_id) if event else url_for('events.list_events') }}">Cancel</a>
     </div>
   </form>
 </section>

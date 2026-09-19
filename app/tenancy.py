@@ -36,10 +36,19 @@ def tenant_scope():
     scope = session.get("tenant_scope", ALL_TENANTS)
     if scope in (None, ALL_TENANTS, "all"):
         return None
-    try:
-        return int(scope)
-    except (TypeError, ValueError):
-        return None
+    from app.models import Tenant
+
+    tenant = Tenant.query.filter_by(public_id=str(scope)).first()
+    if tenant is None and str(scope).isdigit():
+        tenant = db_get_tenant(int(scope))
+    return tenant.id if tenant else None
+
+
+def db_get_tenant(tenant_id):
+    from app import db
+    from app.models import Tenant
+
+    return db.session.get(Tenant, tenant_id)
 
 
 def events_query():
@@ -62,8 +71,8 @@ def registrations_query():
     return query
 
 
-def get_accessible_event(event_id):
-    event = events_query().filter(Event.id == event_id).first()
+def get_accessible_event(code):
+    event = events_query().filter(Event.public_id == str(code)).first()
     if event is None:
         abort(404)
     return event

@@ -48,7 +48,7 @@
                 <td>{{ event.name }}</td>
                 <td>{{ event.event_date.strftime("%b %d, %Y") }}</td>
                 <td>{{ event.venue }}</td>
-                <td><a href="{{ url_for('events.detail', event_id=event.id) }}">View</a></td>
+                <td><a href="{{ url_for('events.detail', event_id=event.public_id) }}">View</a></td>
               </tr>
             {% endfor %}
           </tbody>

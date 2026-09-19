@@ -11,6 +11,7 @@ def prepare_database(app):
     _add_missing_columns()
     _widen_username_column()
     founding = _ensure_founding_tenant()
+    _assign_public_ids()
     _backfill_existing_records(founding)
     _ensure_platform_admin(app, founding)
 
@@ -33,8 +34,12 @@ def _add_missing_columns():
             "is_platform_admin": f"is_platform_admin {boolean}",
             "is_tenant_admin": f"is_tenant_admin {boolean}",
         },
+        "tenants": {
+            "public_id": "public_id VARCHAR(12)",
+        },
         "events": {
             "tenant_id": "tenant_id INTEGER",
+            "public_id": "public_id VARCHAR(12)",
             "field_config": "field_config TEXT",
             "cover_image": "cover_image " + ("BYTEA" if is_postgres else "BLOB"),
             "cover_mime": "cover_mime VARCHAR(80)",
@@ -59,6 +64,12 @@ def _add_missing_columns():
     db.session.execute(
         text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_email_unique ON users (email)")
     )
+    db.session.execute(
+        text("CREATE UNIQUE INDEX IF NOT EXISTS ix_tenants_public_id ON tenants (public_id)")
+    )
+    db.session.execute(
+        text("CREATE UNIQUE INDEX IF NOT EXISTS ix_events_public_id ON events (public_id)")
+    )
     db.session.commit()
 
 
@@ -67,6 +78,22 @@ def _widen_username_column():
         return
     db.session.execute(text("ALTER TABLE users ALTER COLUMN username TYPE VARCHAR(255)"))
     db.session.commit()
+
+
+def _assign_public_ids():
+    from app.codes import assign_public_id
+
+    changed = False
+    for tenant in Tenant.query.filter(Tenant.public_id.is_(None)).all():
+        assign_public_id(tenant)
+        db.session.flush()
+        changed = True
+    for event in Event.query.filter(Event.public_id.is_(None)).all():
+        assign_public_id(event)
+        db.session.flush()
+        changed = True
+    if changed:
+        db.session.commit()
 
 
 def _ensure_founding_tenant():
@@ -82,6 +109,9 @@ def _ensure_founding_tenant():
         subscription_status="active",
         is_founding=True,
     )
+    from app.codes import assign_public_id
+
+    assign_public_id(founding)
     db.session.add(founding)
     db.session.commit()
     return founding
