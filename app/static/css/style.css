@@ -653,6 +653,58 @@ th {
   border: 1px solid var(--line);
 }
 
+.qr-poster {
+  width: min(520px, 100%);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.qr-poster h1 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.qr-kicker {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.qr-poster-image {
+  width: min(320px, 80vw) !important;
+  height: auto !important;
+}
+
+.qr-link {
+  word-break: break-all;
+  font-size: 0.9rem;
+}
+
+@media print {
+  body {
+    background: white;
+  }
+
+  body::before,
+  .topbar,
+  .no-print,
+  .flash-stack {
+    display: none !important;
+  }
+
+  .main {
+    width: 100%;
+    padding: 0;
+  }
+
+  .qr-poster {
+    box-shadow: none;
+    border: none;
+    background: white;
+  }
+}
+
 .public-card {
   width: min(640px, 100%);
   margin: 1rem auto 2rem;

@@ -211,6 +211,14 @@ def cover(event_id):
     )
 
 
+@events_bp.route("/<int:event_id>/qr")
+@login_required
+def qr_poster(event_id):
+    event = get_accessible_event(event_id)
+    join_url = url_for("events.public_register", event_id=event.id, _external=True)
+    return render_template("events/qr.html", event=event, join_url=join_url)
+
+
 @events_bp.route("/<int:event_id>/qr.png")
 @login_required
 def qr_code(event_id):

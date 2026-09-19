@@ -47,6 +47,8 @@
               <td>
                 <a href="{{ url_for('events.detail', event_id=event.id) }}">View</a>
                 ·
+                <a href="{{ url_for('events.qr_poster', event_id=event.id) }}">QR code</a>
+                ·
                 <a href="{{ url_for('registrations.create_registration', event_id=event.id) }}">Register</a>
                 {% if event.registration_count %}
                   ·
