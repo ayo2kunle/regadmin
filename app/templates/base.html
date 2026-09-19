@@ -19,9 +19,23 @@
           <a href="{{ url_for('events.list_events') }}" class="{% if request.blueprint == 'events' %}active{% endif %}">Events</a>
           <a href="{{ url_for('registrations.list_registrations') }}" class="{% if request.blueprint == 'registrations' %}active{% endif %}">Registrations</a>
           <a href="{{ url_for('registrations.create_registration') }}">Register user</a>
-          <a href="{{ url_for('auth.list_admins') }}" class="{% if request.endpoint in ['auth.list_admins', 'auth.create_admin'] %}active{% endif %}">Admins</a>
-          <a href="{{ url_for('auth.logout') }}">Sign out ({{ current_user.username }})</a>
+          {% if platform_admin %}
+            <a href="{{ url_for('tenants.index') }}" class="{% if request.blueprint == 'tenants' %}active{% endif %}">
+              Organizations{% if pending_application_count %} ({{ pending_application_count }}){% endif %}
+            </a>
+            <a href="{{ url_for('auth.list_admins') }}" class="{% if request.endpoint in ['auth.list_admins', 'auth.create_admin'] %}active{% endif %}">Admins</a>
+            <form class="scope-form" method="post" action="{{ url_for('tenants.set_scope') }}">
+              <select class="nav-select" name="tenant_scope" onchange="this.form.submit()" aria-label="Organization">
+                <option value="all" {% if tenant_scope|string == 'all' %}selected{% endif %}>All organizations</option>
+                {% for tenant in scope_tenants %}
+                  <option value="{{ tenant.id }}" {% if tenant_scope|string == tenant.id|string %}selected{% endif %}>{{ tenant.name }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          {% endif %}
+          <a href="{{ url_for('auth.logout') }}">Sign out ({{ current_user.display_name }})</a>
         {% else %}
+          <a href="{{ url_for('auth.register') }}">Register</a>
           <a href="{{ url_for('auth.login') }}">Sign in</a>
         {% endif %}
       </nav>

@@ -18,6 +18,9 @@
             <th>Name</th>
             <th>Date</th>
             <th>Venue</th>
+            {% if platform_admin and tenant_scope|string == 'all' %}
+              <th>Organization</th>
+            {% endif %}
             <th>Registrations</th>
             <th></th>
           </tr>
@@ -28,6 +31,9 @@
               <td>{{ event.name }}</td>
               <td>{{ event.event_date.strftime("%b %d, %Y") }}</td>
               <td>{{ event.venue }}</td>
+              {% if platform_admin and tenant_scope|string == 'all' %}
+                <td>{{ event.tenant.name if event.tenant else "—" }}</td>
+              {% endif %}
               <td>{{ event.registration_count }}</td>
               <td>
                 <a href="{{ url_for('events.detail', event_id=event.id) }}">View</a>

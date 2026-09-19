@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Register — RegAdmin{% endblock %}
+{% block content %}
+<div class="auth-wrap panel">
+  <h1>Register</h1>
+  <p>Submit your organization. A platform admin must approve it before the tenant is created.</p>
+  <form method="post" class="form-grid">
+    <label>
+      Name
+      <input type="text" name="name" required maxlength="120" autocomplete="name" autofocus>
+    </label>
+    <label>
+      Email
+      <input type="email" name="email" required maxlength="255" autocomplete="email">
+    </label>
+    <label>
+      Password
+      <input type="password" name="password" required minlength="6" autocomplete="new-password">
+    </label>
+    <label>
+      Organization name
+      <input type="text" name="organization_name" required maxlength="200" autocomplete="organization">
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Submit for approval</button>
+      <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">Sign in</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

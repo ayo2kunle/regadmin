@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Request received — RegAdmin{% endblock %}
+{% block content %}
+<div class="auth-wrap panel">
+  <h1>Waiting for approval</h1>
+  <p>
+    {% if email %}
+      We received the request for <strong>{{ email }}</strong>.
+    {% else %}
+      We received your registration request.
+    {% endif %}
+    Your organization is not a tenant yet. A platform admin has to approve it before you can sign in.
+  </p>
+  <a class="btn btn-ghost" href="{{ url_for('main.index') }}">Back to home</a>
+</div>
+{% endblock %}

@@ -3,6 +3,7 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.models import Event, Registration
+from app.tenancy import events_query, get_accessible_event, registrations_query
 
 registrations_bp = Blueprint("registrations", __name__, url_prefix="/registrations")
 
@@ -13,14 +14,14 @@ def list_registrations():
     event_id = request.args.get("event_id", type=int)
     member_type = request.args.get("member_type", "").strip()
 
-    query = Registration.query
+    query = registrations_query()
     if event_id:
-        query = query.filter_by(event_id=event_id)
+        query = query.filter(Registration.event_id == event_id)
     if member_type in Registration.MEMBER_TYPES:
-        query = query.filter_by(member_type=member_type)
+        query = query.filter(Registration.member_type == member_type)
 
     registrations = query.order_by(Registration.created_at.desc()).all()
-    events = Event.query.order_by(Event.event_date.desc()).all()
+    events = events_query().order_by(Event.event_date.desc()).all()
     return render_template(
         "registrations/list.html",
         registrations=registrations,
@@ -33,7 +34,7 @@ def list_registrations():
 @registrations_bp.route("/new", methods=["GET", "POST"])
 @login_required
 def create_registration():
-    events = Event.query.order_by(Event.event_date.asc()).all()
+    events = events_query().order_by(Event.event_date.asc()).all()
     preselected_event_id = request.args.get("event_id", type=int)
 
     if request.method == "POST":
@@ -46,7 +47,7 @@ def create_registration():
         notes = (request.form.get("notes") or "").strip()
 
         errors = []
-        event = Event.query.get(event_id) if event_id else None
+        event = events_query().filter_by(id=event_id).first() if event_id else None
         if not event:
             errors.append("Select an event.")
         if not first_name:
@@ -100,4 +101,5 @@ def create_registration():
 @login_required
 def detail(registration_id):
     registration = Registration.query.get_or_404(registration_id)
+    get_accessible_event(registration.event_id)
     return render_template("registrations/detail.html", registration=registration)

@@ -3,11 +3,11 @@
 {% block content %}
 <div class="auth-wrap panel">
   <h1>Sign in</h1>
-  <p>Access events and user registrations.</p>
+  <p>Use the email from your approved organization, or your admin username.</p>
   <form method="post" class="form-grid">
     <label>
-      Username
-      <input type="text" name="username" required autocomplete="username" autofocus>
+      Email
+      <input type="text" name="login" required autocomplete="username" autofocus>
     </label>
     <label>
       Password
@@ -15,6 +15,7 @@
     </label>
     <div class="form-actions">
       <button class="btn btn-primary" type="submit">Sign in</button>
+      <a class="btn btn-ghost" href="{{ url_for('auth.register') }}">Register</a>
     </div>
   </form>
 </div>

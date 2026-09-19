@@ -14,6 +14,16 @@
       Event name
       <input type="text" name="name" required maxlength="200" placeholder="e.g. Annual Gathering">
     </label>
+    {% if tenants %}
+      <label>
+        Organization
+        <select name="tenant_id" required>
+          {% for tenant in tenants %}
+            <option value="{{ tenant.id }}" {% if selected_tenant_id == tenant.id %}selected{% endif %}>{{ tenant.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    {% endif %}
     <div class="form-grid two">
       <label>
         Date

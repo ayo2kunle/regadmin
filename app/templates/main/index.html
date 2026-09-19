@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}RegAdmin — Registration{% endblock %}
+{% block title %}RegAdmin{% endblock %}
 {% block content %}
 <section class="hero">
   <p class="brand-mark">Reg<span>Admin</span></p>
-  <h1>Register guests for every gathering.</h1>
-  <p>Sign in to create events, capture venue and date details, and register existing or new members.</p>
+  <h1>Registration for your organization.</h1>
+  <p>Register your organization to subscribe. An admin reviews the request before your tenant is created.</p>
   <div class="hero-actions">
-    <a class="btn btn-primary" href="{{ url_for('auth.login') }}">Staff sign in</a>
+    <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Register</a>
   </div>
 </section>
 {% endblock %}

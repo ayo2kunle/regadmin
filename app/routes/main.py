@@ -2,6 +2,7 @@ from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 from app.models import Event, Registration
+from app.tenancy import events_query, registrations_query
 
 main_bp = Blueprint("main", __name__)
 
@@ -16,20 +17,19 @@ def index():
 @main_bp.route("/dashboard")
 @login_required
 def dashboard():
-    upcoming_events = (
-        Event.query.order_by(Event.event_date.asc()).limit(5).all()
-    )
+    upcoming_events = events_query().order_by(Event.event_date.asc()).limit(5).all()
     recent_registrations = (
-        Registration.query.order_by(Registration.created_at.desc()).limit(8).all()
+        registrations_query().order_by(Registration.created_at.desc()).limit(8).all()
     )
+    scoped_registrations = registrations_query()
     stats = {
-        "events": Event.query.count(),
-        "registrations": Registration.query.count(),
-        "new_members": Registration.query.filter_by(
-            member_type=Registration.MEMBER_NEW
+        "events": events_query().count(),
+        "registrations": scoped_registrations.count(),
+        "new_members": scoped_registrations.filter(
+            Registration.member_type == Registration.MEMBER_NEW
         ).count(),
-        "existing_members": Registration.query.filter_by(
-            member_type=Registration.MEMBER_EXISTING
+        "existing_members": scoped_registrations.filter(
+            Registration.member_type == Registration.MEMBER_EXISTING
         ).count(),
     }
     return render_template(

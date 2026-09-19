@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Organizations — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Organizations</h1>
+    <p>Approve new subscriptions. A tenant is created only after you approve the request.</p>
+  </div>
+</div>
+
+<section class="panel">
+  <h2>Waiting for approval ({{ pending|length }})</h2>
+  {% if pending %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Organization</th>
+            <th>Requested</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for application in pending %}
+            <tr>
+              <td>{{ application.applicant_name }}</td>
+              <td>{{ application.email }}</td>
+              <td>{{ application.organization_name }}</td>
+              <td>{{ application.created_at.strftime("%b %d, %Y") }}</td>
+              <td>
+                <form method="post" action="{{ url_for('tenants.approve', application_id=application.id) }}" style="display:inline;">
+                  <button class="btn btn-primary" type="submit">Approve</button>
+                </form>
+                <form method="post" action="{{ url_for('tenants.reject', application_id=application.id) }}" style="display:inline;">
+                  <button class="btn btn-ghost" type="submit">Decline</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">No organizations waiting for approval.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Tenants</h2>
+  {% if tenants %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Organization</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Users</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tenant in tenants %}
+            <tr>
+              <td>
+                {{ tenant.name }}
+                {% if tenant.is_founding %}<span class="muted">(founding)</span>{% endif %}
+              </td>
+              <td>{{ tenant.plan }}</td>
+              <td>{{ tenant.subscription_status }}</td>
+              <td>{{ tenant.users.count() }}</td>
+              <td>{{ tenant.created_at.strftime("%b %d, %Y") }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty">No tenants yet.</p>
+  {% endif %}
+</section>
+
+{% if rejected %}
+<section class="panel">
+  <h2>Declined</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Organization</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for application in rejected %}
+          <tr>
+            <td>{{ application.applicant_name }}</td>
+            <td>{{ application.email }}</td>
+            <td>{{ application.organization_name }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

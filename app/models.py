@@ -10,14 +10,38 @@ def utcnow():
     return datetime.now(timezone.utc)
 
 
+class Tenant(db.Model):
+    """An organization subscribed to RegAdmin."""
+
+    __tablename__ = "tenants"
+
+    PLAN_STARTER = "starter"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    plan = db.Column(db.String(40), nullable=False, default=PLAN_STARTER)
+    subscription_status = db.Column(db.String(20), nullable=False, default="active")
+    is_founding = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
+
+    users = db.relationship("User", back_populates="tenant", lazy="dynamic")
+    events = db.relationship("Event", back_populates="tenant", lazy="dynamic")
+
+
 class User(UserMixin, db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    username = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(120), nullable=True)
+    email = db.Column(db.String(255), unique=True, nullable=True, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    tenant_id = db.Column(db.Integer, db.ForeignKey("tenants.id"), nullable=True, index=True)
+    is_platform_admin = db.Column(db.Boolean, nullable=False, default=False)
+    is_tenant_admin = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
+    tenant = db.relationship("Tenant", back_populates="users")
     events_created = db.relationship("Event", back_populates="creator", lazy="dynamic")
     registrations_created = db.relationship(
         "Registration", back_populates="registered_by_user", lazy="dynamic"
@@ -29,11 +53,38 @@ class User(UserMixin, db.Model):
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
+    @property
+    def display_name(self) -> str:
+        return self.name or self.username
+
+
+class TenantApplication(db.Model):
+    """Signup request. A tenant is created only after a platform admin approves it."""
+
+    __tablename__ = "tenant_applications"
+
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+
+    id = db.Column(db.Integer, primary_key=True)
+    applicant_name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(255), nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+    organization_name = db.Column(db.String(200), nullable=False)
+    status = db.Column(db.String(20), nullable=False, default=STATUS_PENDING, index=True)
+    created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
+    reviewed_at = db.Column(db.DateTime, nullable=True)
+    reviewed_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+
+    reviewed_by = db.relationship("User", foreign_keys=[reviewed_by_id])
+
 
 class Event(db.Model):
     __tablename__ = "events"
 
     id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey("tenants.id"), nullable=True, index=True)
     name = db.Column(db.String(200), nullable=False)
     event_date = db.Column(db.Date, nullable=False)
     venue = db.Column(db.String(255), nullable=False)
@@ -41,6 +92,7 @@ class Event(db.Model):
     created_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
+    tenant = db.relationship("Tenant", back_populates="events")
     creator = db.relationship("User", back_populates="events_created")
     registrations = db.relationship(
         "Registration",

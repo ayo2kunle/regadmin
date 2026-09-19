@@ -4,12 +4,20 @@
 <div class="page-header">
   <div>
     <h1>Dashboard</h1>
-    <p>Overview of events and attendee registrations.</p>
+    <p>
+      {% if platform_admin and tenant_scope|string == 'all' %}
+        Platform view across every organization.
+      {% else %}
+        Overview for {{ viewing_org or current_org or "your organization" }}.
+      {% endif %}
+    </p>
   </div>
   <div class="hero-actions">
     <a class="btn btn-primary" href="{{ url_for('events.create_event') }}">New event</a>
     <a class="btn btn-accent" href="{{ url_for('registrations.create_registration') }}">Register user</a>
-    <a class="btn btn-ghost" href="{{ url_for('auth.create_admin') }}">Create admin</a>
+    {% if platform_admin %}
+      <a class="btn btn-ghost" href="{{ url_for('tenants.index') }}">Review organizations</a>
+    {% endif %}
   </div>
 </div>
 
