@@ -65,8 +65,15 @@
           {% for tenant in tenants %}
             <tr>
               <td>
-                {{ tenant.name }}
-                {% if tenant.is_founding %}<span class="muted">(founding)</span>{% endif %}
+                <span class="logo-cell">
+                  {% if tenant.has_logo %}
+                    <img class="org-logo" src="{{ url_for('tenants.logo', public_id=tenant.public_id) }}" alt="">
+                  {% endif %}
+                  <span>
+                    {{ tenant.name }}
+                    {% if tenant.is_founding %}<span class="muted">(founding)</span>{% endif %}
+                  </span>
+                </span>
               </td>
               <td>{{ tenant.plan }}</td>
               <td>{{ tenant.subscription_status }}</td>

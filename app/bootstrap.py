@@ -26,6 +26,7 @@ def _column_names(table_name):
 def _add_missing_columns():
     is_postgres = db.engine.dialect.name == "postgresql"
     boolean = "BOOLEAN NOT NULL DEFAULT FALSE" if is_postgres else "BOOLEAN NOT NULL DEFAULT 0"
+    boolean_on = "BOOLEAN NOT NULL DEFAULT TRUE" if is_postgres else "BOOLEAN NOT NULL DEFAULT 1"
     additions = {
         "users": {
             "name": "name VARCHAR(120)",
@@ -36,6 +37,11 @@ def _add_missing_columns():
         },
         "tenants": {
             "public_id": "public_id VARCHAR(12)",
+            "logo": "logo " + ("BYTEA" if is_postgres else "BLOB"),
+            "logo_mime": "logo_mime VARCHAR(80)",
+            "logo_in_header": f"logo_in_header {boolean_on}",
+            "logo_on_public": f"logo_on_public {boolean_on}",
+            "logo_on_qr": f"logo_on_qr {boolean_on}",
         },
         "events": {
             "tenant_id": "tenant_id INTEGER",

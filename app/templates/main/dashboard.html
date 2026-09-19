@@ -2,7 +2,11 @@
 {% block title %}Dashboard — RegAdmin{% endblock %}
 {% block content %}
 <div class="page-header">
-  <div>
+  <div class="page-title-row">
+    {% if logo_tenant %}
+      <img class="org-logo org-logo-lg" src="{{ url_for('tenants.logo', public_id=logo_tenant.public_id) }}" alt="">
+    {% endif %}
+    <div>
     <h1>Dashboard</h1>
     <p>
       {% if platform_admin and tenant_scope|string == 'all' %}
@@ -11,6 +15,7 @@
         Overview for {{ viewing_org or current_org or "your organization" }}.
       {% endif %}
     </p>
+    </div>
   </div>
   <div class="hero-actions">
     <a class="btn btn-primary" href="{{ url_for('events.create_event') }}">New event</a>

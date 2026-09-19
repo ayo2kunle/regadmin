@@ -1,11 +1,12 @@
+import io
 from datetime import datetime, timezone
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, send_file, session, url_for
 from flask_login import current_user
 
 from app import db
 from app.models import Tenant, TenantApplication, User
-from app.tenancy import ALL_TENANTS, platform_admin_required
+from app.tenancy import ALL_TENANTS, platform_admin_required, tenant_admin_required
 
 tenants_bp = Blueprint("tenants", __name__, url_prefix="/tenants")
 
@@ -110,3 +111,64 @@ def set_scope():
         else:
             session["tenant_scope"] = tenant.public_id
     return redirect(request.referrer or url_for("main.dashboard"))
+
+
+MAX_LOGO_BYTES = 2 * 1024 * 1024
+
+
+def _read_logo():
+    uploaded = request.files.get("logo")
+    if uploaded is None or not uploaded.filename:
+        return None, None, None
+    data = uploaded.read()
+    if not data:
+        return None, None, None
+    if len(data) > MAX_LOGO_BYTES:
+        return None, None, "Logo must be 2 MB or smaller."
+    if data.startswith(b"\xff\xd8\xff"):
+        mime = "image/jpeg"
+    elif data.startswith(b"\x89PNG\r\n\x1a\n"):
+        mime = "image/png"
+    elif data.startswith((b"GIF87a", b"GIF89a")):
+        mime = "image/gif"
+    elif len(data) > 12 and data.startswith(b"RIFF") and data[8:12] == b"WEBP":
+        mime = "image/webp"
+    else:
+        return None, None, "Use a JPG, PNG, WebP, or GIF logo."
+    return data, mime, None
+
+
+@tenants_bp.route("/settings", methods=["GET", "POST"])
+@tenant_admin_required
+def settings():
+    tenant = current_user.tenant
+    if request.method == "POST":
+        logo, mime, logo_error = _read_logo()
+        if logo_error:
+            flash(logo_error, "error")
+            return redirect(url_for("tenants.settings"))
+        if logo:
+            tenant.logo = logo
+            tenant.logo_mime = mime
+        elif request.form.get("remove_logo") == "1":
+            tenant.logo = None
+            tenant.logo_mime = None
+        tenant.logo_in_header = request.form.get("logo_in_header") == "1"
+        tenant.logo_on_public = request.form.get("logo_on_public") == "1"
+        tenant.logo_on_qr = request.form.get("logo_on_qr") == "1"
+        db.session.commit()
+        flash("Organization settings saved.", "success")
+        return redirect(url_for("tenants.settings"))
+    return render_template("tenants/settings.html", tenant=tenant)
+
+
+@tenants_bp.route("/<public_id>/logo")
+def logo(public_id):
+    tenant = Tenant.query.filter_by(public_id=public_id).first_or_404()
+    if not tenant.logo:
+        abort(404)
+    return send_file(
+        io.BytesIO(tenant.logo),
+        mimetype=tenant.logo_mime or "image/png",
+        max_age=3600,
+    )

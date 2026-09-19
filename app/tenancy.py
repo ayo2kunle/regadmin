@@ -21,6 +21,19 @@ def platform_admin_required(view):
     return wrapped
 
 
+def tenant_admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for("auth.login", next=request_path()))
+        if not current_user.is_tenant_admin or current_user.tenant is None:
+            flash("Only an organization admin can do that.", "error")
+            return redirect(url_for("main.dashboard"))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
 def request_path():
     from flask import request
 

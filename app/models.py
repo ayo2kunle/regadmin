@@ -24,10 +24,22 @@ class Tenant(db.Model):
     plan = db.Column(db.String(40), nullable=False, default=PLAN_STARTER)
     subscription_status = db.Column(db.String(20), nullable=False, default="active")
     is_founding = db.Column(db.Boolean, nullable=False, default=False)
+    logo = db.Column(db.LargeBinary, nullable=True)
+    logo_mime = db.Column(db.String(80), nullable=True)
+    logo_in_header = db.Column(db.Boolean, nullable=False, default=True)
+    logo_on_public = db.Column(db.Boolean, nullable=False, default=True)
+    logo_on_qr = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
     users = db.relationship("User", back_populates="tenant", lazy="dynamic")
     events = db.relationship("Event", back_populates="tenant", lazy="dynamic")
+
+    @property
+    def has_logo(self) -> bool:
+        return bool(self.logo)
+
+    def shows_logo(self, place: str) -> bool:
+        return self.has_logo and bool(getattr(self, place))
 
 
 class User(UserMixin, db.Model):

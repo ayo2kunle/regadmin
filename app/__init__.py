@@ -37,15 +37,21 @@ def create_app(config_class=Config):
             "pending_application_count": 0,
             "current_org": None,
             "viewing_org": None,
+            "logo_tenant": None,
+            "tenant_admin": False,
         }
         if not getattr(current_user, "is_authenticated", False):
             return context
 
         context["platform_admin"] = bool(current_user.is_platform_admin)
+        context["tenant_admin"] = bool(current_user.is_tenant_admin and current_user.tenant)
+        context["logo_tenant"] = None
         if current_user.tenant:
             context["current_org"] = current_user.tenant.name
         if not context["platform_admin"]:
             context["viewing_org"] = context["current_org"]
+            if current_user.tenant and current_user.tenant.shows_logo("logo_in_header"):
+                context["logo_tenant"] = current_user.tenant
             return context
 
         context["scope_tenants"] = Tenant.query.order_by(Tenant.name.asc()).all()
@@ -60,6 +66,8 @@ def create_app(config_class=Config):
                 tenant = db.session.get(Tenant, int(scope))
             context["tenant_scope"] = tenant.public_id if tenant else "all"
             context["viewing_org"] = tenant.name if tenant else None
+            if tenant and tenant.shows_logo("logo_in_header"):
+                context["logo_tenant"] = tenant
         return context
 
     from app.routes.auth import auth_bp

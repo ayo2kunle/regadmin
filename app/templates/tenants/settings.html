@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Organization — RegAdmin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Organization</h1>
+    <p>Logo options for {{ tenant.name }}. You can set these after the organization is approved.</p>
+  </div>
+</div>
+
+<section class="panel settings-panel">
+  <form method="post" enctype="multipart/form-data" class="form-grid">
+    <div>
+      <span class="captcha-label">Current logo</span>
+      {% if tenant.has_logo %}
+        <img class="org-logo org-logo-lg" src="{{ url_for('tenants.logo', public_id=tenant.public_id) }}" alt="{{ tenant.name }} logo">
+      {% else %}
+        <p class="muted">No logo yet.</p>
+      {% endif %}
+    </div>
+    <label>
+      Upload a logo
+      <input type="file" name="logo" accept="image/jpeg,image/png,image/webp,image/gif">
+    </label>
+    {% if tenant.has_logo %}
+      <label class="check-option">
+        <input type="checkbox" name="remove_logo" value="1">
+        Remove the current logo
+      </label>
+    {% endif %}
+    <fieldset class="option-set">
+      <legend>Where to show the logo</legend>
+      <label class="check-option">
+        <input type="checkbox" name="logo_in_header" value="1" {% if tenant.logo_in_header %}checked{% endif %}>
+        Header, next to RegAdmin
+      </label>
+      <label class="check-option">
+        <input type="checkbox" name="logo_on_public" value="1" {% if tenant.logo_on_public %}checked{% endif %}>
+        Public registration page
+      </label>
+      <label class="check-option">
+        <input type="checkbox" name="logo_on_qr" value="1" {% if tenant.logo_on_qr %}checked{% endif %}>
+        QR code page
+      </label>
+    </fieldset>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Save settings</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

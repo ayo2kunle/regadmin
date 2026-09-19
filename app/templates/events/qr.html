@@ -14,6 +14,12 @@
 </div>
 
 <section class="panel qr-poster">
+  {% if event.tenant and event.tenant.shows_logo('logo_on_qr') %}
+    <p class="public-org">
+      <img class="org-logo" src="{{ url_for('tenants.logo', public_id=event.tenant.public_id) }}" alt="">
+      {{ event.tenant.name }}
+    </p>
+  {% endif %}
   {% if event.has_cover %}
     <div class="event-hero-cover" style="--x: {{ event.cover_x }}%; --y: {{ event.cover_y }}%; --scale: {{ event.cover_scale }};">
       <img src="{{ url_for('events.cover', event_id=event.public_id) }}" alt="">

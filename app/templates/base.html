@@ -12,13 +12,24 @@
 <body>
   <div class="site-shell">
     <header class="topbar">
-      <a class="brand" href="{{ url_for('main.index') }}">Reg<span>Admin</span></a>
+      <div class="brand-row">
+        <a class="brand" href="{{ url_for('main.index') }}">Reg<span>Admin</span></a>
+        {% if logo_tenant %}
+          <span class="org-mark">
+            <img class="org-logo" src="{{ url_for('tenants.logo', public_id=logo_tenant.public_id) }}" alt="">
+            <span>{{ logo_tenant.name }}</span>
+          </span>
+        {% endif %}
+      </div>
       <nav class="nav-links">
         {% if current_user.is_authenticated %}
           <a href="{{ url_for('main.dashboard') }}" class="{% if request.endpoint == 'main.dashboard' %}active{% endif %}">Dashboard</a>
           <a href="{{ url_for('events.list_events') }}" class="{% if request.blueprint == 'events' %}active{% endif %}">Events</a>
           <a href="{{ url_for('registrations.list_registrations') }}" class="{% if request.blueprint == 'registrations' %}active{% endif %}">Registrations</a>
           <a href="{{ url_for('registrations.create_registration') }}">Register user</a>
+          {% if tenant_admin %}
+            <a href="{{ url_for('tenants.settings') }}" class="{% if request.endpoint == 'tenants.settings' %}active{% endif %}">Organization</a>
+          {% endif %}
           {% if platform_admin %}
             <a href="{{ url_for('tenants.index') }}" class="{% if request.blueprint == 'tenants' %}active{% endif %}">
               Organizations{% if pending_application_count %} ({{ pending_application_count }}){% endif %}
