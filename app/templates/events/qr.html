@@ -27,7 +27,7 @@
   {% endif %}
   <p class="qr-kicker">Scan to register</p>
   <h1>{{ event.name }}</h1>
-  <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.venue }}</p>
+  <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.place_line }}</p>
   <div class="qr-card">
     <img class="qr-poster-image" src="{{ url_for('events.qr_code', event_id=event.public_id) }}" alt="QR code to register for {{ event.name }}">
   </div>

@@ -15,7 +15,7 @@
       </p>
     {% endif %}
     <h1>{{ event.name }}</h1>
-    <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.venue }}</p>
+    <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.place_line }}</p>
     {% if event.description %}
       <p>{{ event.description }}</p>
     {% endif %}

@@ -33,6 +33,9 @@ class Tenant(db.Model):
 
     users = db.relationship("User", back_populates="tenant", lazy="dynamic")
     events = db.relationship("Event", back_populates="tenant", lazy="dynamic")
+    addresses = db.relationship(
+        "Address", back_populates="tenant", lazy="dynamic", cascade="all, delete-orphan"
+    )
 
     @property
     def has_logo(self) -> bool:
@@ -94,6 +97,32 @@ class TenantApplication(db.Model):
     reviewed_by = db.relationship("User", foreign_keys=[reviewed_by_id])
 
 
+class Address(db.Model):
+    """A street address saved for an organization and reused on events."""
+
+    __tablename__ = "addresses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    tenant_id = db.Column(db.Integer, db.ForeignKey("tenants.id"), nullable=False, index=True)
+    street = db.Column(db.String(200), nullable=False)
+    city = db.Column(db.String(120), nullable=False, default="")
+    state_code = db.Column(db.String(20), nullable=False, default="")
+    state_name = db.Column(db.String(120), nullable=False, default="")
+    country_code = db.Column(db.String(2), nullable=False)
+    country_name = db.Column(db.String(120), nullable=False)
+    postal_code = db.Column(db.String(20), nullable=False, default="")
+    created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
+
+    tenant = db.relationship("Tenant", back_populates="addresses")
+    events = db.relationship("Event", back_populates="address", lazy="dynamic")
+
+    @property
+    def one_line(self) -> str:
+        locality = " ".join(part for part in (self.city, self.state_name, self.postal_code) if part)
+        parts = [self.street, locality, self.country_name]
+        return ", ".join(part for part in parts if part)
+
+
 class Event(db.Model):
     __tablename__ = "events"
 
@@ -103,6 +132,7 @@ class Event(db.Model):
     name = db.Column(db.String(200), nullable=False)
     event_date = db.Column(db.Date, nullable=False)
     venue = db.Column(db.String(255), nullable=False)
+    address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=True, index=True)
     description = db.Column(db.Text, nullable=True)
     field_config = db.Column(db.Text, nullable=True)
     cover_image = db.Column(db.LargeBinary, nullable=True)
@@ -114,6 +144,7 @@ class Event(db.Model):
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
     tenant = db.relationship("Tenant", back_populates="events")
+    address = db.relationship("Address", back_populates="events")
     creator = db.relationship("User", back_populates="events_created")
     registrations = db.relationship(
         "Registration",
@@ -135,6 +166,12 @@ class Event(db.Model):
     @property
     def has_cover(self) -> bool:
         return bool(self.cover_image)
+
+    @property
+    def place_line(self) -> str:
+        if self.address:
+            return f"{self.venue} · {self.address.one_line}"
+        return self.venue
 
 
 class Registration(db.Model):

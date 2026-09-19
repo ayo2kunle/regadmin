@@ -48,4 +48,33 @@
     </div>
   </form>
 </section>
+
+<section class="panel settings-panel">
+  <h2>Addresses</h2>
+  <p>Save the places this organization uses. When you create an event, you can pick one of these or add another.</p>
+  {% if addresses %}
+    <div class="address-list">
+      {% for address in addresses %}
+        <div class="address-card">
+          <span>{{ address.one_line }}</span>
+          <form method="post" action="{{ url_for('tenants.delete_address', address_id=address.id) }}">
+            <button class="btn btn-ghost btn-sm" type="submit">Remove</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">No addresses yet.</p>
+  {% endif %}
+  <h3>Add an address</h3>
+  <form method="post" action="{{ url_for('tenants.add_address') }}" class="form-grid">
+    {% include "addresses/_fields.html" %}
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Save address</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/address.js') }}"></script>
 {% endblock %}

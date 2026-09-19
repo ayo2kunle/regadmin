@@ -17,7 +17,7 @@
           <option value="" disabled {% if not preselected_event_id %}selected{% endif %}>Select an event</option>
           {% for event in events %}
             <option value="{{ event.public_id }}" {% if preselected_event_id == event.public_id %}selected{% endif %}>
-              {{ event.name }} — {{ event.event_date.strftime("%b %d, %Y") }} @ {{ event.venue }}
+              {{ event.name }} — {{ event.event_date.strftime("%b %d, %Y") }} @ {{ event.place_line }}
             </option>
           {% endfor %}
         </select>

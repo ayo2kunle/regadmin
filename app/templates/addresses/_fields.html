@@ -1,0 +1,35 @@
+<div class="address-fields" data-address-fields
+  data-countries-url="{{ url_for('places.countries') }}"
+  data-detail-base="{{ url_for('places.country', code='XX') }}"
+  data-selected-country="{{ request.form.get('country_code', '') }}"
+  data-selected-state="{{ request.form.get('state_code', '') }}">
+  <label>
+    Street
+    <input class="street-input" type="text" name="street" required maxlength="200" autocomplete="street-address" value="{{ request.form.get('street', '') }}">
+  </label>
+  <label>
+    City <span class="muted">(optional)</span>
+    <input type="text" name="city" maxlength="120" autocomplete="address-level2" value="{{ request.form.get('city', '') }}">
+  </label>
+  <div class="form-grid two">
+    <label>
+      Country
+      <select class="country-select" name="country_code" required>
+        <option value="">Loading countries…</option>
+      </select>
+    </label>
+    <label>
+      State or province
+      <select class="state-select" name="state_code" disabled>
+        <option value="">Select a country first</option>
+      </select>
+      <input class="state-free" type="text" name="state_name" maxlength="120" autocomplete="address-level1" hidden disabled value="{{ request.form.get('state_name', '') }}">
+    </label>
+  </div>
+  <label>
+    Postal code
+    <input class="postal-input" type="text" name="postal_code" maxlength="20" autocomplete="postal-code" value="{{ request.form.get('postal_code', '') }}">
+    <datalist class="postal-list"></datalist>
+    <span class="postal-hint muted"></span>
+  </label>
+</div>

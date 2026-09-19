@@ -71,6 +71,7 @@ def create_app(config_class=Config):
         return context
 
     from app.routes.auth import auth_bp
+    from app.routes.places import places_bp
     from app.routes.events import events_bp
     from app.routes.main import main_bp
     from app.routes.registrations import registrations_bp
@@ -78,6 +79,7 @@ def create_app(config_class=Config):
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(places_bp)
     app.register_blueprint(events_bp)
     app.register_blueprint(registrations_bp)
     app.register_blueprint(tenants_bp)

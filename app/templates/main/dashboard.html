@@ -52,7 +52,7 @@
               <tr>
                 <td data-label="Event">{{ event.name }}</td>
                 <td data-label="Date">{{ event.event_date.strftime("%b %d, %Y") }}</td>
-                <td data-label="Venue">{{ event.venue }}</td>
+                <td data-label="Venue">{{ event.place_line }}</td>
                 <td class="row-actions" data-label=""><a href="{{ url_for('events.detail', event_id=event.public_id) }}">View</a></td>
               </tr>
             {% endfor %}

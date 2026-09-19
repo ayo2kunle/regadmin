@@ -920,6 +920,31 @@ td[data-label=""]::before {
   gap: 0.35rem;
 }
 
+.postal-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.address-list {
+  display: grid;
+  margin-bottom: 1rem;
+}
+
+.address-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.address-card span {
+  text-align: left;
+}
+
 .sheet-links a,
 .sheet-links .scope-form {
   display: flex;

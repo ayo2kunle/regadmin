@@ -52,6 +52,7 @@ def _add_missing_columns():
             "cover_x": ("cover_x DOUBLE PRECISION NOT NULL DEFAULT 50" if is_postgres else "cover_x REAL NOT NULL DEFAULT 50"),
             "cover_y": ("cover_y DOUBLE PRECISION NOT NULL DEFAULT 50" if is_postgres else "cover_y REAL NOT NULL DEFAULT 50"),
             "cover_scale": ("cover_scale DOUBLE PRECISION NOT NULL DEFAULT 1" if is_postgres else "cover_scale REAL NOT NULL DEFAULT 1"),
+            "address_id": "address_id INTEGER",
         },
         "registrations": {
             "custom_data": "custom_data TEXT",

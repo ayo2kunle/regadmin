@@ -39,7 +39,7 @@
                 </div>
               </td>
               <td data-label="Date">{{ event.event_date.strftime("%b %d, %Y") }}</td>
-              <td data-label="Venue">{{ event.venue }}</td>
+              <td data-label="Venue">{{ event.place_line }}</td>
               {% if platform_admin and tenant_scope|string == 'all' %}
                 <td data-label="Organization">{{ event.tenant.name if event.tenant else "—" }}</td>
               {% endif %}

@@ -3,6 +3,6 @@
 {% block content %}
 <section class="panel public-card">
   <h1>You're registered</h1>
-  <p>{{ event.name }} has your registration for {{ event.event_date.strftime("%B %d, %Y") }} at {{ event.venue }}.</p>
+  <p>{{ event.name }} has your registration for {{ event.event_date.strftime("%B %d, %Y") }} at {{ event.place_line }}.</p>
 </section>
 {% endblock %}

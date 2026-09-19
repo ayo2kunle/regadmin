@@ -5,7 +5,8 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, s
 from flask_login import current_user
 
 from app import db
-from app.models import Tenant, TenantApplication, User
+from app.addresses import read_new_address
+from app.models import Address, Tenant, TenantApplication, User
 from app.tenancy import ALL_TENANTS, platform_admin_required, tenant_admin_required
 
 tenants_bp = Blueprint("tenants", __name__, url_prefix="/tenants")
@@ -159,7 +160,34 @@ def settings():
         db.session.commit()
         flash("Organization settings saved.", "success")
         return redirect(url_for("tenants.settings"))
-    return render_template("tenants/settings.html", tenant=tenant)
+    return render_template("tenants/settings.html", tenant=tenant, addresses=tenant.addresses.order_by(Address.street.asc()).all())
+
+
+@tenants_bp.route("/addresses", methods=["POST"])
+@tenant_admin_required
+def add_address():
+    errors, address = read_new_address(request.form, current_user.tenant_id)
+    if errors or address is None:
+        for message in errors:
+            flash(message, "error")
+        return redirect(url_for("tenants.settings"))
+    db.session.add(address)
+    db.session.commit()
+    flash("Address saved.", "success")
+    return redirect(url_for("tenants.settings"))
+
+
+@tenants_bp.route("/addresses/<int:address_id>/delete", methods=["POST"])
+@tenant_admin_required
+def delete_address(address_id):
+    address = Address.query.filter_by(id=address_id, tenant_id=current_user.tenant_id).first_or_404()
+    if address.events.count():
+        flash("That address is used by an event, so it stays on file.", "error")
+        return redirect(url_for("tenants.settings"))
+    db.session.delete(address)
+    db.session.commit()
+    flash("Address removed.", "success")
+    return redirect(url_for("tenants.settings"))
 
 
 @tenants_bp.route("/<public_id>/logo")

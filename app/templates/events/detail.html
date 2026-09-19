@@ -4,7 +4,7 @@
 <div class="page-header">
   <div>
     <h1>{{ event.name }}</h1>
-    <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.venue }}</p>
+    <p>{{ event.event_date.strftime("%A, %B %d, %Y") }} · {{ event.place_line }}</p>
   </div>
   <div class="hero-actions">
     <a class="btn btn-primary" href="{{ url_for('events.qr_poster', event_id=event.public_id) }}">QR code</a>
@@ -71,7 +71,7 @@
         </div>
         <div>
           <dt>Venue</dt>
-          <dd>{{ event.venue }}</dd>
+          <dd>{{ event.place_line }}</dd>
         </div>
         <div>
           <dt>Created by</dt>

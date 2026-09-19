@@ -16,7 +16,8 @@ from flask_login import current_user, login_required
 from app import db
 from app.exports import build_event_registrations_workbook, event_export_filename
 from app.fields import collect_registration, custom_slots, dump_settings, settings_from_form, visible_columns
-from app.models import Event, Registration, Tenant
+from app.models import Address, Event, Registration, Tenant
+from app.addresses import read_new_address
 from app.codes import assign_public_id
 from app.tenancy import events_query, get_accessible_event, tenant_for_new_record
 
@@ -91,7 +92,16 @@ def _event_form_context(event):
         "selected_tenant_id": selected_tenant_id,
         "settings": active_settings,
         "custom_slots": custom_slots(active_settings),
+        "addresses": _addresses_for_form(),
+        "selected_address_id": request.form.get("address_id", type=int) if request.method == "POST" else (event.address_id if event else None),
     }
+
+
+def _addresses_for_form():
+    query = Address.query
+    if not current_user.is_platform_admin:
+        query = query.filter(Address.tenant_id == current_user.tenant_id)
+    return query.order_by(Address.street.asc()).all()
 
 
 def _read_event_basics():
@@ -120,13 +130,33 @@ def _read_event_basics():
         tenant_id = tenant.id if tenant else None
         if not tenant_id:
             errors.append("Select an organization.")
+    address = None
+    if tenant_id:
+        address_id = request.form.get("address_id", type=int)
+        if address_id:
+            address = Address.query.filter_by(id=address_id, tenant_id=tenant_id).first()
+            if address is None:
+                errors.append("Choose an address that belongs to this organization.")
+        else:
+            address_errors, address = read_new_address(request.form, tenant_id)
+            errors.extend(address_errors)
     return errors, {
         "name": name,
         "venue": venue,
         "description": description or None,
         "event_date": event_date,
         "tenant_id": tenant_id,
+        "address": address,
     }
+
+
+def _attach_address(event, address):
+    if address is None:
+        return
+    if address.id is None:
+        db.session.add(address)
+        db.session.flush()
+    event.address_id = address.id
 
 
 @events_bp.route("/")
@@ -159,6 +189,7 @@ def create_event():
         else:
             event.name = basics["name"]
             event.venue = basics["venue"]
+            _attach_address(event, basics["address"])
             assign_public_id(event)
             db.session.add(event)
             db.session.commit()
@@ -183,6 +214,7 @@ def edit_event(event_id):
         else:
             event.name = basics["name"]
             event.venue = basics["venue"]
+            _attach_address(event, basics["address"])
             event.description = basics["description"]
             event.event_date = basics["event_date"]
             event.tenant_id = basics["tenant_id"]

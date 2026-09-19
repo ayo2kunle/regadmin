@@ -30,9 +30,27 @@
         <input type="date" name="event_date" required value="{{ request.form.get('event_date', event.event_date.isoformat() if event else '') }}">
       </label>
       <label>
-        Venue
+        Venue name
         <input type="text" name="venue" required maxlength="255" value="{{ request.form.get('venue', event.venue if event else '') }}">
       </label>
+    </div>
+
+    <div id="address-picker">
+      <label id="saved-address" {% if not addresses %}hidden{% endif %}>
+        Address on file
+        <select name="address_id" id="address-id">
+          <option value="">Add a new address</option>
+          {% for address in addresses %}
+            <option value="{{ address.id }}" data-tenant="{{ address.tenant.public_id }}" {% if selected_address_id == address.id %}selected{% endif %}>
+              {{ address.one_line }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <div id="new-address" {% if selected_address_id %}hidden{% endif %}>
+        <p class="muted">{% if addresses %}Or add a street address. It is saved for the next event.{% else %}No address on file yet. Add one and it is saved for this organization.{% endif %}</p>
+        {% include "addresses/_fields.html" %}
+      </div>
     </div>
     <label>
       Description <span class="muted">(optional)</span>
@@ -136,6 +154,7 @@
 </section>
 {% endblock %}
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/address.js') }}"></script>
 <script src="{{ url_for('static', filename='js/cover.js') }}"></script>
 <script src="{{ url_for('static', filename='js/fields.js') }}"></script>
 {% endblock %}
