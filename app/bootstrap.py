@@ -3,7 +3,7 @@ from sqlalchemy import inspect, text
 from app import db
 from app.models import Event, Tenant, User
 
-FOUNDING_TENANT_NAME = "RegAdmin"
+FOUNDING_TENANT_NAME = "Jesus House Toronto"
 
 
 def prepare_database(app):
@@ -62,6 +62,9 @@ def _widen_username_column():
 def _ensure_founding_tenant():
     founding = Tenant.query.filter_by(is_founding=True).first()
     if founding:
+        if founding.name != FOUNDING_TENANT_NAME:
+            founding.name = FOUNDING_TENANT_NAME
+            db.session.commit()
         return founding
     founding = Tenant(
         name=FOUNDING_TENANT_NAME,
